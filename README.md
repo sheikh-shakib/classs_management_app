@@ -37,9 +37,9 @@ Student:
 1.	Flutter
 2.	Dart
 3.	Firebase (optional / planned)
-o	Authentication
-o	Database
-o	Push notifications
+i.	Authentication
+ii.	Database
+iii.	Push notifications 
 # Current status
 This project is still under development.
 Right now, the focus is on core features and simple user experience.
