@@ -1,16 +1,50 @@
-# class_management_app
+# Class Management App
 
-A new Flutter project.
+Classroom Management App (Flutter)
+This is a simple classroom management mobile application built using Flutter.
+The app is made to help teachers, CRs, and students stay updated with daily class routines and any class changes.
+Students often forget class schedules or miss updates like class time changes or room changes.
+This app solves that problem by showing the daily routine clearly and sending instant notifications whenever an update is made.
+________________________________________
+1.	What this app does
+2.	Shows daily class routine for students
+3.	Teachers manage class schedules
+4.	CR (Class Representative) can update class information on teacher’s instruction
+5.	Teachers or CRs can change:
+a.	Class time
+b.	Classroom number
+6.	Students receive instant notifications
+7.	The app always shows the latest updated routine
+________________________________________
+Why I built this
+I built this project as a learning and MVP project to practice Flutter development and understand how a classroom management system works.
+This project helps me learn:
+1.	Flutter app development
+2.	Role-based access (Teacher, CR, Student)
+3.	Real-time routine updates
+4.	Notification system
+This idea can be useful for schools, colleges, and coaching centers.
+User roles
+Teacher:
+1.	Create and manage class routines
+2.	Update class time or classroom
+3.	Allow CR to update routines when needed
+CR (Class Representative):
+1.	Update daily class routine based on teacher’s instruction
+2.	Change class time or classroom
+3.	Help keep students informed when the teacher is unavailable
+Student:
+1.	View daily class routine easily
+2.	Receive notifications for any class update
+3.	Avoid confusion about class timing or room
+Technology used
+1.	Flutter
+2.	Dart
+3.	Firebase (optional / planned)
+o	Authentication
+o	Database
+o	Push notifications
+Current status
+This project is still under development.
+Right now, the focus is on core features and simple user experience.
 
-## Getting Started
-
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
