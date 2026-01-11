@@ -15,7 +15,7 @@ b.	Classroom number
 6.	Students receive instant notifications
 7.	The app always shows the latest updated routine
 # Why we are building this
-We are building this project to solve a common problem faced by students and teachers — missing or confusing class routine updates.
+We are building this project to solve a common problem faced by students and teachers missing or confusing class routine updates.
 Class time or room changes are often shared verbally or in group chats, which many students miss.
 This app is being built as a simple and practical solution where daily class routines are always visible, and any change is instantly notified to everyone.
 This idea can be useful for schools, colleges, and coaching centers.
