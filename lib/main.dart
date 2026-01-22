@@ -1,3 +1,5 @@
+import 'package:class_management_app/screens/login_screen.dart';
+import 'package:class_management_app/screens/register_screen.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -11,31 +13,12 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(primarySwatch: Colors.blue),
-      home: MyhomePage(),
+      initialRoute: "login",
+      routes: {
+        "login":(context)=>LoginScreen(),
+        "register":(context)=>RegisterScreen(),
+      },
     );
   }
 }
 
-class MyhomePage extends StatelessWidget {
-  const MyhomePage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: const Color.fromARGB(255, 145, 224, 255),
-        title: Text("Classroom Manager"),
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Text("This is going to be our first outstanding App InshaALlah."),
-          ],
-        ),
-      ),
-    );
-  }
-}
