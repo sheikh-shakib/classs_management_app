@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "452395113458",
+    "project_id": "classroom-maneger",
+    "storage_bucket": "classroom-maneger.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:452395113458:android:af667b8966362f6fc9a96b",
+        "android_client_info": {
+          "package_name": "com.example.class_management_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyARsuoiLYOntygAqDs8qJPB219YvjQXEMI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
