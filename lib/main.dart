@@ -2,7 +2,8 @@ import 'package:class_management_app/screens/login_screen.dart';
 import 'package:class_management_app/screens/register_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
-
+import 'package:provider/provider.dart';
+import 'providers/auth_provider.dart';
 import 'firebase_options.dart';
 
 void main() async {
@@ -18,13 +19,16 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      initialRoute: "login",
-      routes: {
-        "login":(context)=>LoginScreen(),
-        "register":(context)=>RegisterScreen(),
-      },
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider<AuthProvider>(
+          create: (_) => AuthProvider(),
+        ),
+      ],
+      child: MaterialApp(
+        debugShowCheckedModeBanner: false,
+        home: const LoginScreen(),
+      ),
     );
   }
 }
