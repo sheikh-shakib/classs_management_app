@@ -36,7 +36,7 @@ Student:
 # Technology used
 1.	Flutter
 2.	Dart
-3.	Firebase (optional / planned)
+3.	Firebase
 i.	Authentication
 ii.	Database
 iii.	Push notifications 
