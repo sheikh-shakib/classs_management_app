@@ -1,5 +1,7 @@
+import 'package:class_management_app/screens/routine_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import '../providers/auth_provider.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -91,6 +93,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                       duration: Duration(seconds: 2),
                                     ),
                                   );
+                                  Navigator.push(context,MaterialPageRoute(builder: (context) => RoutineScreen()),);
                                 } else {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     const SnackBar(
