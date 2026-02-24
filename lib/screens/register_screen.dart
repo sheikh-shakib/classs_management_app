@@ -61,11 +61,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   )
                   ), 
                   SizedBox(height: 20,),
-                  ElevatedButton(onPressed: (){}, child: Text("Sign Up",style: TextStyle(fontWeight: FontWeight.w600),),style:ElevatedButton.styleFrom(
+                  ElevatedButton(onPressed: (){},style:ElevatedButton.styleFrom(
                     foregroundColor: Colors.white,
                     backgroundColor: const Color.fromARGB(255, 67, 151, 247),
                     padding: const EdgeInsets.symmetric(horizontal: 60, vertical: 10),
-                  ),),
+                  ), child: Text("Sign Up",style: TextStyle(fontWeight: FontWeight.w600),),),
                   SizedBox(height: 80,),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,

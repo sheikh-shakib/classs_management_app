@@ -24,7 +24,7 @@ class _RoutineScreenState extends State<RoutineScreen>
     _controller.dispose();
     super.dispose();
   }
-  signOut()async{
+  Future<void> signOut()async{
     await FirebaseAuth.instance.signOut();
   }
 
