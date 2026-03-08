@@ -1,4 +1,4 @@
-import 'package:class_management_app/screens/routine_screen.dart';
+import 'package:class_management_app/screens/schedule_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -93,7 +93,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                       duration: Duration(seconds: 2),
                                     ),
                                   );
-                                  Navigator.push(context,MaterialPageRoute(builder: (context) => RoutineScreen()),);
+                                  Navigator.pushReplacement(context,MaterialPageRoute(builder: (context) => ScheduleScreen()),);
                                 } else {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     const SnackBar(
