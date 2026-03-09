@@ -25,7 +25,7 @@ class ScheduleProvider with ChangeNotifier {
     try {
       if (user.role == UserRole.teacher) {
         _events = await _scheduleService.getEventsForTeacher(user.id);
-      } else if (user.groupId != null) {
+      } else if (user.groupId != null && user.groupId!.isNotEmpty) {
         String groupId = user.groupId!;
         _events = await _scheduleService.getEvents(groupId);
       } else {

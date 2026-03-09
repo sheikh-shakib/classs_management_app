@@ -45,7 +45,7 @@ class _ScheduleScreenState extends State<ScheduleScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Your Routine"),
+        title: Text("Your Schedule"),
         backgroundColor: const Color.fromARGB(255, 147, 214, 253),
         actions: [
           Padding(
@@ -125,6 +125,48 @@ class _ScheduleScreenState extends State<ScheduleScreen>
             ),
           ),
         ],
+      ),
+      body: Consumer<ScheduleProvider>(
+      builder: (context, scheduleProvider, child) {
+
+          if (scheduleProvider.isLoading) {
+            return const Center(
+              child: CircularProgressIndicator(),
+            );
+          }
+
+          final events =
+              scheduleProvider.getEventsForDay(DateTime.now());
+
+          if (events.isEmpty) {
+            return const Center(
+              child: Text(
+                "No classes today 🎉",
+                style: TextStyle(fontSize: 18),
+              ),
+            );
+          }
+
+          return ListView.builder(
+            padding: const EdgeInsets.all(16),
+            itemCount: events.length,
+            itemBuilder: (context, index) {
+
+              final event = events[index];
+
+              return Card(
+                margin: const EdgeInsets.only(bottom: 16),
+                child: ListTile(
+                  title: Text(event.subject),
+                  subtitle: Text("Room ${event.room}"),
+                  trailing: Text(
+                    "${event.startTime.format(context)} - ${event.endTime.format(context)}",
+                  ),
+                ),
+              );
+            },
+          );
+        },
       ),
     );
   }

@@ -25,7 +25,7 @@ enum UserRole { student, cr, teacher }
         (e) => e.toString() == 'UserRole.${map['role']}',
         orElse: () => UserRole.student,
       ),
-      groupId: map['groupId'] ?? '',
+      groupId: map['groupId'] ,
     );
   }
 //method to convert UserModel to map for database storage
