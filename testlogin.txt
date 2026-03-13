@@ -1,4 +1,10 @@
 test email and password
-email:student1@test.com
+email:
+student1@test.com
+student2@test.com
+cr acc 
+cr1@test.com 
+techer acc;
+teacher1@test.com
 
 passs: 123456
