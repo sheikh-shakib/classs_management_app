@@ -16,16 +16,8 @@ class ScheduleScreen extends StatefulWidget {
 }
 
 class _ScheduleScreenState extends State<ScheduleScreen> {
-  // Weekdays mapping from Saturday to Friday
-  final List<Map<String, dynamic>> _weekDays = [
-    {'name': 'Saturday', 'weekday': 6},
-    {'name': 'Sunday', 'weekday': 7},
-    {'name': 'Monday', 'weekday': 1},
-    {'name': 'Tuesday', 'weekday': 2},
-    {'name': 'Wednesday', 'weekday': 3},
-    {'name': 'Thursday', 'weekday': 4},
-    {'name': 'Friday', 'weekday': 5},
-  ];
+  // State variable to track the currently viewed date (defaults to today)
+  DateTime _currentDate = DateTime.now();
 
   @override
   void initState() {
@@ -41,6 +33,32 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
 
   Future<void> signOut() async {
     await firebase_auth.FirebaseAuth.instance.signOut();
+  }
+
+  // Helper method to go to the next day
+  void _nextDay() {
+    setState(() {
+      _currentDate = _currentDate.add(const Duration(days: 1));
+    });
+  }
+
+  // Helper method to go to the previous day
+  void _previousDay() {
+    setState(() {
+      _currentDate = _currentDate.subtract(const Duration(days: 1));
+    });
+  }
+
+  // Helper method to format the day title
+  String _getDayTitle(DateTime date) {
+    final now = DateTime.now();
+    // Check if the selected date is today
+    if (date.year == now.year && date.month == now.month && date.day == now.day) {
+      return "Today's Classes";
+    }
+    // Otherwise, return the specific weekday name
+    const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    return "${days[date.weekday - 1]} Classes";
   }
 
   @override
@@ -64,7 +82,6 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
           ),
         ],
       ),
-      // RESTORED: Existing Side Drawer
       drawer: NavigationDrawer(
         children: [
           Padding(
@@ -92,7 +109,6 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
             title: const Text("Class Schedule"),
             onTap: () => Navigator.pop(context),
           ),
-          // Conditional Add Routine Tile
           if (canEdit)
             ListTile(
               leading: const Icon(Icons.add),
@@ -129,69 +145,69 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
       ),
       body: provider.isLoading
           ? const Center(child: CircularProgressIndicator())
-          : ListView(
-              padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
+          : Column(
               children: [
-                Center(child: _buildSectionTitle("Today's Classes")),
-                const SizedBox(height: 10),
-                _buildTodayContent(provider, canEdit),
-                const Divider(height: 40, thickness: 2),
-                Center(child: _buildSectionTitle("Weekly Schedule")),
-                const SizedBox(height: 15),
-                ..._buildWeeklySchedule(provider, canEdit),
+                // --- Navigation Bar (Previous, Title, Next) ---
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.arrow_back_ios, color: Colors.blue),
+                        onPressed: _previousDay,
+                        tooltip: "Previous Day",
+                      ),
+                      Text(
+                        _getDayTitle(_currentDate),
+                        style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.arrow_forward_ios, color: Colors.blue),
+                        onPressed: _nextDay,
+                        tooltip: "Next Day",
+                      ),
+                    ],
+                  ),
+                ),
+                
+                const Divider(thickness: 1),
+
+                // --- Daily Routine Content ---
+                Expanded(
+                  child: _buildDailyContent(provider, canEdit),
+                ),
               ],
             ),
     );
   }
 
-  // Helper to build Today's content
-  Widget _buildTodayContent(ScheduleProvider provider, bool canEdit) {
-    final todayEvents = provider.getEventsForDay(DateTime.now());
-    if (todayEvents.isEmpty) {
-      return const Padding(
-        padding: EdgeInsets.symmetric(vertical: 20),
-        child: Center(
-            child: Text("No classes today 🎉",
-                style: TextStyle(fontSize: 16, color: Colors.grey))),
-      );
-    }
-    return _buildRoutineTable(context, todayEvents, canEdit, provider);
-  }
+  // Helper to build the content for the selected day
+  Widget _buildDailyContent(ScheduleProvider provider, bool canEdit) {
+    // Get events specifically for the currently selected date
+    final dailyEvents = provider.getEventsForDay(_currentDate);
 
-  // Helper to build the full week's tables
-  List<Widget> _buildWeeklySchedule(ScheduleProvider provider, bool canEdit) {
-    return _weekDays.map((day) {
-      final dayEvents = provider.events
-          .where((e) => e.dayOfWeek == day['weekday'])
-          .toList()
-        ..sort((a, b) => (a.startTime.hour * 60 + a.startTime.minute)
-            .compareTo(b.startTime.hour * 60 + b.startTime.minute));
-
-      if (dayEvents.isEmpty) return const SizedBox.shrink();
-
+    if (dailyEvents.isEmpty) {
       return Column(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 12),
-            child: Text(day['name'],
-                style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.blue)),
+          Icon(Icons.event_busy, size: 60, color: Colors.grey[400]),
+          const SizedBox(height: 16),
+          const Text(
+            "No classes scheduled for this day 🎉",
+            style: TextStyle(fontSize: 16, color: Colors.grey),
           ),
-          _buildRoutineTable(context, dayEvents, canEdit, provider),
-          const SizedBox(height: 25),
         ],
       );
-    }).toList();
+    }
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: _buildRoutineTable(context, dailyEvents, canEdit, provider),
+    );
   }
 
-  Widget _buildSectionTitle(String title) {
-    return Text(title,
-        style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold));
-  }
-
-  // Table widget centered with horizontal scroll
+  // Table widget containing the Group Column
   Widget _buildRoutineTable(BuildContext context, List events, bool canEdit,
       ScheduleProvider provider) {
     return Center(
@@ -202,6 +218,13 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
             color: Colors.white,
             border: Border.all(color: Colors.grey[300]!),
             borderRadius: BorderRadius.circular(8),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 4,
+                offset: const Offset(0, 2),
+              ),
+            ],
           ),
           child: DataTable(
             columnSpacing: 20,
@@ -209,6 +232,8 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
             columns: [
               const DataColumn(label: Text('Time', style: TextStyle(fontWeight: FontWeight.bold))),
               const DataColumn(label: Text('Subject', style: TextStyle(fontWeight: FontWeight.bold))),
+              // --- NEW: Group Column ---
+              const DataColumn(label: Text('Group', style: TextStyle(fontWeight: FontWeight.bold))),
               const DataColumn(label: Text('Room', style: TextStyle(fontWeight: FontWeight.bold))),
               if (canEdit) const DataColumn(label: Text('Action', style: TextStyle(fontWeight: FontWeight.bold))),
             ],
@@ -216,6 +241,17 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
               return DataRow(cells: [
                 DataCell(Text("${e.startTime.format(context)} - ${e.endTime.format(context)}")),
                 DataCell(Text(e.subject, style: const TextStyle(fontWeight: FontWeight.w500))),
+                // Display the groupId assigned to the routine
+                DataCell(
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.blue[100],
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(e.groupId.toUpperCase(), style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.blue)),
+                  )
+                ),
                 DataCell(Text(e.room)),
                 if (canEdit)
                   DataCell(

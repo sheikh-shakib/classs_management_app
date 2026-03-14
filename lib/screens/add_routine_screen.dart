@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../models/schedule_event.dart';
+import '../models/user_model.dart';
 import '../providers/auth_provider.dart';
 import '../providers/schedule_provider.dart';
 
@@ -27,18 +28,27 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
     'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'
   ];
 
-  // --- NEW: Group Selection Variables ---
-  // In a real app, you might fetch this list from Firebase.
-  // For now, I'm adding a static list based on your screenshots.
-  String _selectedGroupId = 'g2'; // Default to g2
-  final List<Map<String, String>> _availableGroups = [
-    {'id': 'g1', 'name': 'Group 1'},
-    {'id': 'g2', 'name': 'Group 2'},
-    // Add more groups here if needed
-  ];
-
   @override
   Widget build(BuildContext context) {
+    // Get the current user to auto-assign the Group ID
+    final user = context.watch<AuthProvider>().user;
+    
+    // Safety check: ensure we have a user
+    if (user == null) {
+      return const Scaffold(body: Center(child: Text("Error: User not found.")));
+    }
+
+    // Determine the target group based on role
+    // If CR, they MUST add to their own group. 
+    // If Teacher, they might need a dropdown, but for now, we use their assigned groupId or a default.
+    String targetGroupId = user.groupId ?? "Unknown Group";
+    
+    // We only show the dropdown if the user is a teacher and needs to assign to different groups.
+    // For a CR, this variable is fixed.
+    bool isTeacher = user.role == UserRole.teacher;
+    // Temporary dropdown value for teachers if needed, otherwise ignored.
+    String _teacherSelectedGroupId = 'g1'; 
+
     return Scaffold(
       appBar: AppBar(title: const Text("Add New Class Routine")),
       body: Form(
@@ -46,6 +56,29 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
+            // If it's a CR, show them which group they are adding for
+            if (!isTeacher)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 15),
+                child: Text(
+                  "Adding routine for: Group $targetGroupId",
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.blue),
+                ),
+              ),
+
+            // If it IS a teacher, they get the dropdown to pick the group
+            if (isTeacher)
+              DropdownButtonFormField<String>(
+                value: _teacherSelectedGroupId,
+                decoration: const InputDecoration(labelText: "Target Group", border: OutlineInputBorder()),
+                items: const [
+                  DropdownMenuItem(value: 'g1', child: Text("Group 1")),
+                  DropdownMenuItem(value: 'g2', child: Text("Group 2")),
+                ],
+                onChanged: (val) => setState(() => _teacherSelectedGroupId = val!),
+              ),
+            if (isTeacher) const SizedBox(height: 15),
+
             // Subject Input
             TextFormField(
               controller: _subjectController,
@@ -59,18 +92,6 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
               controller: _roomController,
               decoration: const InputDecoration(labelText: "Room Number", border: OutlineInputBorder()),
               validator: (val) => val!.isEmpty ? "Enter Room Number" : null,
-            ),
-            const SizedBox(height: 15),
-
-            // --- NEW: Group Selection Dropdown ---
-            DropdownButtonFormField<String>(
-              value: _selectedGroupId,
-              decoration: const InputDecoration(labelText: "Target Group", border: OutlineInputBorder()),
-              items: _availableGroups.map((group) => DropdownMenuItem(
-                value: group['id'],
-                child: Text(group['name']!),
-              )).toList(),
-              onChanged: (val) => setState(() => _selectedGroupId = val!),
             ),
             const SizedBox(height: 15),
 
@@ -118,15 +139,13 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
               style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 15)),
               onPressed: () async {
                 if (_formKey.currentState!.validate()) {
-                  final auth = context.read<AuthProvider>();
-                  
-                  // --- CRUCIAL CHANGE: Use the specifically selected group ---
-                  String targetGroupId = _selectedGroupId; 
+                  // Determine final group ID based on role
+                  String finalGroupId = isTeacher ? _teacherSelectedGroupId : targetGroupId;
 
                   final newEvent = ScheduleEvent(
                     id: DateTime.now().millisecondsSinceEpoch.toString(),
-                    groupId: targetGroupId, 
-                    teacherId: auth.user!.id,
+                    groupId: finalGroupId, 
+                    teacherId: user.id, // CR or Teacher ID
                     subject: _subjectController.text,
                     room: _roomController.text,
                     startTime: _startTime,
@@ -136,7 +155,7 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
                   );
 
                   try {
-                    debugPrint("Saving Routine for Group: $targetGroupId");
+                    debugPrint("Saving Routine for Group: $finalGroupId");
                     await context.read<ScheduleProvider>().addEvent(newEvent);
                     
                     if (mounted) {
