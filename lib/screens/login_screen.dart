@@ -1,8 +1,8 @@
 import 'package:class_management_app/screens/schedule_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
 import '../providers/auth_provider.dart';
+import 'register_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -17,124 +17,146 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        image: DecorationImage(image: AssetImage("assets/login.png"),fit: BoxFit.cover,)
-      ),
-      child: Scaffold(
-        backgroundColor: Colors.transparent,
-        body: Stack(
-          children: [
-            Container(
-              padding: EdgeInsets.all(10),
-              margin: EdgeInsets.only(top: 150,left: 15),
-              child: Text("Welcome to \n Classroom Manager",style: TextStyle(color: Colors.white,fontSize: 25,fontWeight: FontWeight.w600),),
-            ),
-            SingleChildScrollView(
-              child: Container(
-                margin: EdgeInsets.only(top: MediaQuery.of(context).size.height*.40),
-                padding: EdgeInsets.all(10),
-                child: Column(children: [
-                  Text("Login",style: TextStyle(fontSize: 25,fontWeight: FontWeight.w600)),
-                  SizedBox(height: 40,),
-                  TextField(
-                    controller: _emailController,
-                    decoration: InputDecoration(
-                      hintText: "Email",
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      fillColor: Colors.grey.shade100,
-                      filled: true,
-                    ),
-                  ),
-                  SizedBox(height: 15,),
-                  TextField(
-                    controller: _passwordController,
-                    obscureText: true,
-                    decoration: InputDecoration(
-                      hintText: "Password",
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      fillColor: Colors.grey.shade100,
-                      filled: true,
-                    ),
-                  ),
-                  SizedBox(height: 20,),
-                  Consumer<AuthProvider>(
-                    builder: (context, auth, _) {
-                      return ElevatedButton(
-                        onPressed: auth.isLoading
-                            ? null
-                            : () async {
-                                final email = _emailController.text.trim();
-                                final password = _passwordController.text.trim();
+    return Scaffold(
+      backgroundColor: const Color(0xFF0F1117),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 60),
 
-                                if (email.isEmpty || password.isEmpty) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text("Email and password are required"),
-                                    ),
-                                  );
-                                  return;
-                                }
+              const Text(
+                "Welcome to\nClassroom Manager",
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 26,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
 
-                                final success = await auth.login(
-                                  email: email,
-                                  password: password,
+              const SizedBox(height: 60),
+
+              const Text(
+                "Login",
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 22,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+
+              const SizedBox(height: 30),
+
+              TextField(
+                controller: _emailController,
+                style: const TextStyle(color: Colors.white),
+                decoration: InputDecoration(
+                  hintText: "Email",
+                  hintStyle: const TextStyle(color: Colors.white38),
+                  filled: true,
+                  fillColor: const Color(0xFF1C1F2E),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 15),
+
+              TextField(
+                controller: _passwordController,
+                obscureText: true,
+                style: const TextStyle(color: Colors.white),
+                decoration: InputDecoration(
+                  hintText: "Password",
+                  hintStyle: const TextStyle(color: Colors.white38),
+                  filled: true,
+                  fillColor: const Color(0xFF1C1F2E),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 25),
+
+              Consumer<AuthProvider>(
+                builder: (context, auth, _) {
+                  return SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: auth.isLoading
+                          ? null
+                          : () async {
+                              final email = _emailController.text.trim();
+                              final password = _passwordController.text.trim();
+
+                              if (email.isEmpty || password.isEmpty) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text("Email and password are required"),
+                                  ),
                                 );
+                                return;
+                              }
 
-                                if (success) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text("Login successful ✅"),
-                                      backgroundColor: Colors.green,
-                                      duration: Duration(seconds: 2),
-                                    ),
-                                  );
-                                  Navigator.pushReplacement(context,MaterialPageRoute(builder: (context) => ScheduleScreen()),);
-                                } else {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text("Login failed ❌"),
-                                      backgroundColor: Colors.red,
-                                    ),
-                                  );
-                                }
+                              final success = await auth.login(
+                                email: email,
+                                password: password,
+                              );
 
-                              },
-                        child: auth.isLoading
-                            ? const CircularProgressIndicator(
-                                color: Colors.white,
-                              )
-                            : const Text(
-                                "Login",
-                                style: TextStyle(fontWeight: FontWeight.w600),
-                              ),
+                              if (success) {
+                                Navigator.of(context).pushAndRemoveUntil(
+                                  MaterialPageRoute(
+                                      builder: (_) => const ScheduleScreen()),
+                                  (route) => false,
+                                );
+                              } else {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text("Login failed ❌"),
+                                    backgroundColor: Colors.red,
+                                  ),
+                                );
+                              }
+                            },
+                      child: auth.isLoading
+                          ? const CircularProgressIndicator(color: Colors.white)
+                          : const Text("Login"),
+                    ),
+                  );
+                },
+              ),
+
+              const SizedBox(height: 40),
+
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  TextButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const RegisterScreen()),
                       );
                     },
+                    child: const Text("Sign Up"),
                   ),
-
-                  SizedBox(height: MediaQuery.of(context).size.height*.18,),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                    TextButton(onPressed: (){Navigator.pushNamed(context, "register");}, child: Text("Sign Up")),
-                    TextButton(onPressed: (){}, child: Text("Forgot Password")),
-                  ],)
-              ]),
+                ],
               ),
-            )
-          ],
+            ],
+          ),
         ),
       ),
     );
   }
+
   @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
-    super.dispose();      
+    super.dispose();
   }
 }

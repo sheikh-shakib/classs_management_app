@@ -50,5 +50,39 @@ class AuthServices {
     }
     return UserModel.fromMap(userDoc.data() as Map<String, dynamic>);
   }
+  Future<UserModel?> register({
+  required String name,
+  required String email,
+  required String password,
+  required UserRole role,
+  String? groupId,
+}) async {
+  try {
+    // create user in Firebase Auth
+    UserCredential cred = await _auth.createUserWithEmailAndPassword(
+      email: email,
+      password: password,
+    );
+
+    String uid = cred.user!.uid;
+
+    // create user model
+    final user = UserModel(
+      id: uid,
+      name: name,
+      email: email,
+      role: role,
+      groupId: groupId,
+    );
+
+    // store in Firestore
+    await _firestore.collection('users').doc(uid).set(user.toMap());
+
+    return user;
+  } catch (e) {
+    print("Register error: $e");
+    return null;
+  }
+}
 }
 

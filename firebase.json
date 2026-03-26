@@ -1,1 +1,1 @@
-{"flutter":{"platforms":{"dart":{"lib/firebase_options.dart":{"projectId":"classroom-maneger","configurations":{"web":"1:452395113458:web:a48322ca9e80d2f9c9a96b"}}}}}}
+{"flutter":{"platforms":{"dart":{"lib/firebase_options.dart":{"projectId":"classroom-maneger","configurations":{"android":"1:452395113458:android:af667b8966362f6fc9a96b","web":"1:452395113458:web:a48322ca9e80d2f9c9a96b"}}},"android":{"default":{"projectId":"classroom-maneger","appId":"1:452395113458:android:af667b8966362f6fc9a96b","fileOutput":"android/app/google-services.json"}}}}}

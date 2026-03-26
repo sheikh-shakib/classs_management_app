@@ -6,6 +6,7 @@ import 'providers/auth_provider.dart';
 import 'firebase_options.dart';
 import 'providers/schedule_provider.dart';
 
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(

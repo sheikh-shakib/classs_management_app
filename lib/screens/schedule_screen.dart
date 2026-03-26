@@ -1,12 +1,12 @@
-import 'package:class_management_app/models/user_model.dart';
-import 'package:class_management_app/screens/add_routine_screen.dart';
-import 'package:class_management_app/screens/login_screen.dart';
-import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
 import '../providers/auth_provider.dart';
 import '../providers/schedule_provider.dart';
+import '../models/schedule_event.dart';
+import '../models/user_model.dart';
+import '../services/schedule_service.dart';
+import 'add_routine_screen.dart';
+import 'login_screen.dart';
 
 class ScheduleScreen extends StatefulWidget {
   const ScheduleScreen({super.key});
@@ -16,274 +16,262 @@ class ScheduleScreen extends StatefulWidget {
 }
 
 class _ScheduleScreenState extends State<ScheduleScreen> {
-  // State variable to track the currently viewed date (defaults to today)
-  DateTime _currentDate = DateTime.now();
+  DateTime _selectedDate = DateTime.now();
+  late DateTime _weekStart;
+
+  DateTime _getWeekStart(DateTime date) {
+    return date.subtract(Duration(days: date.weekday - 1));
+  }
 
   @override
   void initState() {
     super.initState();
-    // Fetch schedule data on initialization
-    Future.microtask(() {
-      final auth = context.read<AuthProvider>();
-      if (auth.user != null) {
-        context.read<ScheduleProvider>().loadSchedule(auth.user!);
+    _weekStart = _getWeekStart(_selectedDate);
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final user = context.read<AuthProvider>().user;
+      if (user != null) {
+        context.read<ScheduleProvider>().loadSchedule(user);
       }
     });
   }
 
-  Future<void> signOut() async {
-    await firebase_auth.FirebaseAuth.instance.signOut();
-  }
+  void _openAdd(UserModel user, {ScheduleEvent? event}) {
+    showDialog(
+      context: context,
+      builder: (_) => AddRoutineScreen(
+        user: user,
+        existingEvent: event,
+        allEvents: context.read<ScheduleProvider>().events,
+        onSave: (e) async {
+          final conflicts = await ScheduleService().checkConflicts(e);
 
-  // Helper method to go to the next day
-  void _nextDay() {
-    setState(() {
-      _currentDate = _currentDate.add(const Duration(days: 1));
-    });
-  }
+          if (conflicts.isNotEmpty) {
+            _showConflictDialog(conflicts);
+            return;
+          }
 
-  // Helper method to go to the previous day
-  void _previousDay() {
-    setState(() {
-      _currentDate = _currentDate.subtract(const Duration(days: 1));
-    });
-  }
+          if (event != null) {
+            await context.read<ScheduleProvider>().deleteEvent(event.id);
+          }
 
-  // Helper method to format the day title
-  String _getDayTitle(DateTime date) {
-    final now = DateTime.now();
-    // Check if the selected date is today
-    if (date.year == now.year && date.month == now.month && date.day == now.day) {
-      return "Today's Classes";
-    }
-    // Otherwise, return the specific weekday name
-    const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-    return "${days[date.weekday - 1]} Classes";
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final user = context.watch<AuthProvider>().user;
-    final canEdit = user?.role == UserRole.teacher || user?.role == UserRole.cr;
-    final provider = context.watch<ScheduleProvider>();
-
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text("Class Routine"),
-        backgroundColor: const Color.fromARGB(255, 147, 214, 253),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.all(10),
-            child: IconButton(
-              onPressed: () {},
-              icon: const Icon(Icons.person),
-              color: Colors.black,
-            ),
-          ),
-        ],
+          await context.read<ScheduleProvider>().addEvent(e);
+        },
       ),
-      drawer: NavigationDrawer(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(15),
-            child: Center(
-              child: CircleAvatar(
-                radius: 50,
-                backgroundColor: Colors.grey[300],
-                child: const Icon(Icons.person, size: 50),
-              ),
-            ),
-          ),
-          const Padding(
-            padding: EdgeInsets.all(20),
-            child: Center(child: Text("Welcome to Classroom Manager")),
-          ),
-          const Divider(),
-          ListTile(
-            leading: const Icon(Icons.home),
-            title: const Text("Home Page"),
-            onTap: () => Navigator.pop(context),
-          ),
-          ListTile(
-            leading: const Icon(Icons.schedule),
-            title: const Text("Class Schedule"),
-            onTap: () => Navigator.pop(context),
-          ),
-          if (canEdit)
-            ListTile(
-              leading: const Icon(Icons.add),
-              title: const Text("Add Routine"),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const AddRoutineScreen()),
-                );
-              },
-            ),
-          ListTile(
-            leading: const Icon(Icons.person),
-            title: const Text("Dashboard"),
-            onTap: () {},
-          ),
-          const Divider(),
-          ListTile(
-            leading: const Icon(Icons.logout),
-            title: const Text("Logout"),
-            onTap: () async {
-              await signOut();
-              if (mounted) {
-                Navigator.pushAndRemoveUntil(
-                  context,
-                  MaterialPageRoute(builder: (_) => const LoginScreen()),
-                  (route) => false,
-                );
-              }
-            },
-          ),
-        ],
-      ),
-      body: provider.isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : Column(
-              children: [
-                // --- Navigation Bar (Previous, Title, Next) ---
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.arrow_back_ios, color: Colors.blue),
-                        onPressed: _previousDay,
-                        tooltip: "Previous Day",
-                      ),
-                      Text(
-                        _getDayTitle(_currentDate),
-                        style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.arrow_forward_ios, color: Colors.blue),
-                        onPressed: _nextDay,
-                        tooltip: "Next Day",
-                      ),
-                    ],
-                  ),
-                ),
-                
-                const Divider(thickness: 1),
-
-                // --- Daily Routine Content ---
-                Expanded(
-                  child: _buildDailyContent(provider, canEdit),
-                ),
-              ],
-            ),
     );
   }
 
-  // Helper to build the content for the selected day
-  Widget _buildDailyContent(ScheduleProvider provider, bool canEdit) {
-    // Get events specifically for the currently selected date
-    final dailyEvents = provider.getEventsForDay(_currentDate);
-
-    if (dailyEvents.isEmpty) {
-      return Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.event_busy, size: 60, color: Colors.grey[400]),
-          const SizedBox(height: 16),
-          const Text(
-            "No classes scheduled for this day 🎉",
-            style: TextStyle(fontSize: 16, color: Colors.grey),
-          ),
-        ],
-      );
-    }
-
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: _buildRoutineTable(context, dailyEvents, canEdit, provider),
-    );
-  }
-
-  // Table widget containing the Group Column
-  Widget _buildRoutineTable(BuildContext context, List events, bool canEdit,
-      ScheduleProvider provider) {
-    return Center(
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            border: Border.all(color: Colors.grey[300]!),
-            borderRadius: BorderRadius.circular(8),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.05),
-                blurRadius: 4,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          child: DataTable(
-            columnSpacing: 20,
-            headingRowColor: WidgetStateProperty.all(Colors.blue[50]),
-            columns: [
-              const DataColumn(label: Text('Time', style: TextStyle(fontWeight: FontWeight.bold))),
-              const DataColumn(label: Text('Subject', style: TextStyle(fontWeight: FontWeight.bold))),
-              // --- NEW: Group Column ---
-              const DataColumn(label: Text('Group', style: TextStyle(fontWeight: FontWeight.bold))),
-              const DataColumn(label: Text('Room', style: TextStyle(fontWeight: FontWeight.bold))),
-              if (canEdit) const DataColumn(label: Text('Action', style: TextStyle(fontWeight: FontWeight.bold))),
-            ],
-            rows: events.map((e) {
-              return DataRow(cells: [
-                DataCell(Text("${e.startTime.format(context)} - ${e.endTime.format(context)}")),
-                DataCell(Text(e.subject, style: const TextStyle(fontWeight: FontWeight.w500))),
-                // Display the groupId assigned to the routine
-                DataCell(
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: Colors.blue[100],
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text(e.groupId.toUpperCase(), style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.blue)),
-                  )
-                ),
-                DataCell(Text(e.room)),
-                if (canEdit)
-                  DataCell(
-                    IconButton(
-                      icon: const Icon(Icons.delete_outline, color: Colors.red),
-                      onPressed: () => _confirmDelete(context, provider, e.id),
-                    ),
-                  ),
-              ]);
-            }).toList(),
-          ),
+  void _showConflictDialog(List<String> conflicts) {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text("Conflict"),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: conflicts.map((e) => Text(e)).toList(),
         ),
       ),
     );
   }
 
-  void _confirmDelete(BuildContext context, ScheduleProvider provider, String id) {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text("Confirm Deletion"),
-        content: const Text("Delete this class?"),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text("Cancel")),
-          TextButton(
-            onPressed: () {
-              provider.deleteEvent(id);
-              Navigator.pop(ctx);
+  void _cancelOnce(ScheduleEvent e) async {
+    await ScheduleService().cancelEventOnce(e.id, _selectedDate);
+
+    final user = context.read<AuthProvider>().user;
+    if (user != null) {
+      context.read<ScheduleProvider>().loadSchedule(user);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final user = context.watch<AuthProvider>().user;
+    final schedule = context.watch<ScheduleProvider>();
+
+    if (user == null) return const Scaffold();
+
+    final events = schedule.events
+        .where((e) => e.occursOn(_selectedDate))
+        .toList()
+      ..sort((a, b) {
+        final aMin = a.startTime.hour * 60 + a.startTime.minute;
+        final bMin = b.startTime.hour * 60 + b.startTime.minute;
+        return aMin.compareTo(bMin);
+      });
+
+    return Scaffold(
+      backgroundColor: const Color(0xFF0F1117),
+      floatingActionButton:
+          (user.role == UserRole.teacher || user.role == UserRole.cr)
+              ? FloatingActionButton(
+                  onPressed: () => _openAdd(user),
+                  child: const Icon(Icons.add),
+                )
+              : null,
+      body: SafeArea(
+        child: Column(
+          children: [
+            _header(user),
+            _weekNav(),
+            _daysRow(),
+
+            Expanded(
+              child: schedule.isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : events.isEmpty
+                      ? const Center(child: Text("No classes"))
+                      : ListView.builder(
+                          itemCount: events.length,
+                          itemBuilder: (_, i) {
+                            final e = events[i];
+                            final conflict = _hasConflict(e, schedule.events);
+                            return _card(e, user, conflict);
+                          },
+                        ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  bool _hasConflict(ScheduleEvent e, List<ScheduleEvent> all) {
+    final service = ScheduleService();
+
+    for (var other in all) {
+      if (other.id == e.id) continue;
+      if (e.dayOfWeek != other.dayOfWeek) continue;
+
+      if (!service.isTimeOverlap(
+          e.startTime, e.endTime,
+          other.startTime, other.endTime)) continue;
+
+      if (e.room == other.room ||
+          e.teacherId == other.teacherId ||
+          e.groupId == other.groupId) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  Widget _header(UserModel user) {
+    return Padding(
+      padding: const EdgeInsets.all(12),
+      child: Row(
+        children: [
+          Text(user.name, style: const TextStyle(color: Colors.white)),
+          const Spacer(),
+          IconButton(
+            onPressed: () async {
+              await context.read<AuthProvider>().logout();
+              if (!mounted) return;
+              Navigator.of(context).pushAndRemoveUntil(
+                MaterialPageRoute(builder: (_) => const LoginScreen()),
+                (route) => false,
+              );
             },
-            child: const Text("Delete", style: TextStyle(color: Colors.red)),
-          ),
+            icon: const Icon(Icons.logout, color: Colors.red),
+          )
         ],
+      ),
+    );
+  }
+
+  Widget _weekNav() {
+    return Row(
+      children: [
+        IconButton(
+          icon: const Icon(Icons.chevron_left, color: Colors.white),
+          onPressed: () {
+            setState(() {
+              _weekStart = _weekStart.subtract(const Duration(days: 7));
+              _selectedDate = _weekStart;
+            });
+          },
+        ),
+        const Spacer(),
+        Text("${_weekStart.day}/${_weekStart.month}",
+            style: const TextStyle(color: Colors.white)),
+        const Spacer(),
+        IconButton(
+          icon: const Icon(Icons.chevron_right, color: Colors.white),
+          onPressed: () {
+            setState(() {
+              _weekStart = _weekStart.add(const Duration(days: 7));
+              _selectedDate = _weekStart;
+            });
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _daysRow() {
+    const labels = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+
+    return Row(
+      children: List.generate(7, (i) {
+        final day = _weekStart.add(Duration(days: i));
+        final selected =
+            _selectedDate.year == day.year &&
+            _selectedDate.month == day.month &&
+            _selectedDate.day == day.day;
+
+        return Expanded(
+          child: GestureDetector(
+            onTap: () => setState(() => _selectedDate = day),
+            child: Container(
+              margin: const EdgeInsets.all(4),
+              padding: const EdgeInsets.symmetric(vertical: 6),
+              decoration: BoxDecoration(
+                color: selected ? Colors.blue : Colors.grey[800],
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Column(
+                children: [
+                  Text(labels[i],
+                      style: const TextStyle(color: Colors.white, fontSize: 11),
+                      overflow: TextOverflow.ellipsis),
+                  Text("${day.day}",
+                      style: const TextStyle(color: Colors.white)),
+                ],
+              ),
+            ),
+          ),
+        );
+      }),
+    );
+  }
+
+  Widget _card(ScheduleEvent e, UserModel user, bool conflict) {
+    return Card(
+      color: const Color(0xFF1C1F2E),
+      child: ListTile(
+        title: Row(
+          children: [
+            Expanded(child: Text(e.subject, style: const TextStyle(color: Colors.white))),
+            if (conflict)
+              const Icon(Icons.warning, color: Colors.yellow, size: 18),
+          ],
+        ),
+        subtitle: Text(
+          "${e.startTime.format(context)} - ${e.endTime.format(context)}",
+          style: const TextStyle(color: Colors.white54),
+        ),
+        trailing: PopupMenuButton<String>(
+          onSelected: (v) {
+            if (v == "edit") _openAdd(user, event: e);
+            if (v == "cancel_once") _cancelOnce(e);
+            if (v == "delete")
+              context.read<ScheduleProvider>().deleteEvent(e.id);
+          },
+          itemBuilder: (_) => const [
+            PopupMenuItem(value: "edit", child: Text("Edit")),
+            PopupMenuItem(value: "cancel_once", child: Text("Cancel Once")),
+            PopupMenuItem(value: "delete", child: Text("Delete")),
+          ],
+        ),
       ),
     );
   }
