@@ -5,40 +5,54 @@ import '../models/user_model.dart';
 import '../services/schedule_service.dart';
 
 class ScheduleProvider with ChangeNotifier {
+  //creates an instance of schedule service
   final ScheduleService _scheduleService = ScheduleService();
+  // list of schedule events
   List<ScheduleEvent> _events = [];
+  //loading state to show a loading indicator in the UI while the schedule is being loaded
   bool _isLoading = false;
+  //get fucntion for private variables
   List<ScheduleEvent> get events => _events;
   bool get isLoading => _isLoading;
 
   // load schedule
   Future<void> loadSchedule(UserModel user) async {
+    //ui change while it loads the schedule
     _isLoading = true;
     notifyListeners();
     try {
+      //gets event based on the user role
+      //for teacher
       if (user.role == UserRole.teacher) {
         _events = await _scheduleService.getEventsForTeacher(user.id);
-      } else if (user.groupId != null && user.groupId!.isNotEmpty) {
+      }
+      //for students and CR
+      else if (user.groupId != null && user.groupId!.isNotEmpty) {
         _events = await _scheduleService.getEvents(user.groupId!);
-      } else {
+      }
+      //edge case
+      else {
         _events = [];
       }
     } catch (e) {
+      //the error debug was used incase the loading doesn't work vvimpo
       debugPrint('Error loading schedule: $e');
-    } finally {
+    } 
+    //regardless of success or failure, loading is set to false and UI is notified to rebuild accordingly
+    finally {
       _isLoading = false;
       notifyListeners();
     }
   }
 
-  //adding event
+  //adding event by adding by calling the addEvent function in schedule service
   Future<void> addEvent(ScheduleEvent event) async {
     await _scheduleService.addEvent(event);
     _events.add(event);
     notifyListeners();
   }
 
-  // corrected to 1 argument
+  //deleting event by calling the deleteEvent function in schedule service
   Future<void> deleteEvent(String eventId) async {
     await _scheduleService.deleteEvent(eventId);
     _events.removeWhere((e) => e.id == eventId);
