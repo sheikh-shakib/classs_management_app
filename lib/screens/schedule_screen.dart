@@ -21,6 +21,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
   late DateTime _weekStart;
   List<String> teacherList = [];
   List<String> roomList = [];
+  List<String> groupList = [];
 
   DateTime _getWeekStart(DateTime date) {
     return date.subtract(Duration(days: date.weekday - 1));
@@ -45,11 +46,13 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
 
     final t = await service.getTeacherIds();
     final r = await service.getAllRoomNames();
+    final g = await service.getAllgroups();
 
     if (mounted) {
       setState(() {
         teacherList = t;
         roomList = r;
+        groupList = g;
       });
     }
   }
@@ -63,6 +66,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
         allEvents: context.read<ScheduleProvider>().events,
         teacherList: teacherList,
         roomList: roomList,
+        groupList: groupList,
         onSave: (e) async {
           final conflicts = await ScheduleService().checkConflicts(e);
 

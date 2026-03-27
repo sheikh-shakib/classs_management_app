@@ -13,7 +13,6 @@ class ScheduleEvent {
   final bool isRecurring;
   final DateTime? specificDate; // used for one time classes
   final DateTime recurrenceStartDate;
-  final DateTime? recurrenceEndDate;
   final List<DateTime> exceptions; // cancelled classes
   ScheduleEvent({
     required this.id,
@@ -27,7 +26,6 @@ class ScheduleEvent {
     this.isRecurring = true,
     this.specificDate,
     required this.recurrenceStartDate,
-    this.recurrenceEndDate,
     this.exceptions = const []
   });
 
@@ -46,7 +44,6 @@ class ScheduleEvent {
       'isRecurring': isRecurring,
       'specificDate': specificDate,
       'recurrenceStartDate': recurrenceStartDate,
-      'recurrenceEndDate': recurrenceEndDate,
       'exceptions': exceptions.map((e) => Timestamp.fromDate(e)).toList(),
     };
   }
@@ -74,9 +71,6 @@ class ScheduleEvent {
       recurrenceStartDate: map['recurrenceStartDate'] != null
           ? (map['recurrenceStartDate'] as Timestamp).toDate()
           : DateTime.now(),
-      recurrenceEndDate: map['recurrenceEndDate'] != null
-          ? (map['recurrenceEndDate'] as Timestamp).toDate()
-          : null,
       exceptions:
           (map['exceptions'] as List<dynamic>?)
               ?.map((e) => (e as Timestamp).toDate())
@@ -101,14 +95,6 @@ class ScheduleEvent {
       recurrenceStartDate.day,
     );
     if (checkDate.isBefore(start)) return false;
-    if (recurrenceEndDate != null) {
-      final end = DateTime(
-        recurrenceEndDate!.year,
-        recurrenceEndDate!.month,
-        recurrenceEndDate!.day,
-      );
-      if (checkDate.isAfter(end)) return false;
-    }
     for (var ex in exceptions) {
       final exDate = DateTime(ex.year, ex.month, ex.day);
       if (exDate == checkDate) return false;

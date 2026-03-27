@@ -147,4 +147,20 @@ class ScheduleService {
       return [];
     }
   }
+  Future<List<String>> getAllgroups() async {
+    try {
+      QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+          .collection('groups')
+          .get();
+
+      List<String> groupNames = querySnapshot.docs.map((doc) {
+        return doc['id'] as String;
+      }).toList();
+
+      return groupNames;
+    } catch (e) {
+      print("Error fetching groups: $e");
+      return [];
+    }
+  }
 }

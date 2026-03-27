@@ -11,6 +11,7 @@ class AddRoutineScreen extends StatefulWidget {
   final Future<void> Function(ScheduleEvent) onSave;
   final List<String> teacherList;
   final List<String> roomList;
+  final List<String> groupList;
 
   const AddRoutineScreen({
     super.key,
@@ -20,6 +21,7 @@ class AddRoutineScreen extends StatefulWidget {
     required this.teacherList,
     required this.roomList,
     this.existingEvent,
+    required this.groupList,
   });
 
   @override
@@ -36,6 +38,7 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
   TimeOfDay end = TimeOfDay(hour: TimeOfDay.now().hour + 1, minute: 0);
   String? selectedTeacher;
   String? selectedRoom;
+  String? selectedGroup;
 
   bool isRecurring = true;
   DateTime? selectedDate;
@@ -97,11 +100,21 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
             ),
 
             if (!isCR)
-              TextField(
-                controller: group,
-                style: TextStyle(color: Colors.blue),
-                decoration: const InputDecoration(labelText: "Group"),
-              ),
+              DropdownButtonFormField<String>(
+              value: selectedGroup,
+              decoration: const InputDecoration(labelText: "Group"),
+              items: widget.groupList.map((group) {
+                return DropdownMenuItem(
+                  value: group,
+                  child: Text(group, style: TextStyle(color: Colors.blue)),
+                );
+              }).toList(),
+              onChanged: (value) {
+                setState(() {
+                  selectedGroup = value!;
+                });
+              },
+            ),
 
             DropdownButtonFormField<String>(
               value: selectedTeacher,
