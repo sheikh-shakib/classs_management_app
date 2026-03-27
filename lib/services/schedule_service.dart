@@ -105,5 +105,38 @@ Future<void> cancelEventOnce(String eventId, DateTime date) async {
   });
 }
 
+Future<List<String>> getTeacherIds() async {
+  try {
+    QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+        .collection('users')
+        .where('roll', isEqualTo: 'teacher')
+        .get();
+
+    List<String> teacherIds = querySnapshot.docs.map((doc) {
+      return doc['id'] as String;
+    }).toList();
+
+    return teacherIds;
+  } catch (e) {
+    print("Error fetching teachers: $e");
+    return [];
+  }
+}
+
+Future<List<String>> getAllRoomNames() async {
+  try {
+    QuerySnapshot querySnapshot =
+        await FirebaseFirestore.instance.collection('rooms').get();
+
+    List<String> roomNames = querySnapshot.docs.map((doc) {
+      return doc['Name'] as String;
+    }).toList();
+
+    return roomNames;
+  } catch (e) {
+    print("Error fetching rooms: $e");
+    return [];
+  }
+}
 
 }

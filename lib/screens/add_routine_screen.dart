@@ -87,8 +87,39 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
             if (!isCR)
               TextField(controller: group,style: TextStyle(color: Colors.blue), decoration: const InputDecoration(labelText: "Group")),
 
-            TextField(controller: teacher,style: TextStyle(color: Colors.blue), decoration: const InputDecoration(labelText: "Teacher")),
-            TextField(controller: room, style: TextStyle(color: Colors.blue),decoration: const InputDecoration(labelText: "Room")),
+                  DropdownButtonFormField<String>(
+        value: selectedTeacher,
+        decoration: const InputDecoration(labelText: "Teacher"),
+        items: teacherList.map((teacher) {
+          return DropdownMenuItem(
+            value: teacher,
+            child: Text(teacher, style: TextStyle(color: Colors.blue)),
+          );
+        }).toList(),
+        onChanged: (value) {
+          setState(() {
+            selectedTeacher = value!;
+          });
+        },
+      ),
+
+      SizedBox(height: 16),
+
+      DropdownButtonFormField<String>(
+        value: selectedRoom,
+        decoration: const InputDecoration(labelText: "Room"),
+        items: roomList.map((room) {
+          return DropdownMenuItem(
+            value: room,
+            child: Text(room, style: TextStyle(color: Colors.blue)),
+          );
+        }).toList(),
+        onChanged: (value) {
+          setState(() {
+            selectedRoom = value!;
+          });
+        },
+      ),
 
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,

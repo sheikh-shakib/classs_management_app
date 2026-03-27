@@ -29,6 +29,15 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
     super.initState();
     _weekStart = _getWeekStart(_selectedDate);
 
+  
+  loadDropdownData();
+  }
+
+Future<void> loadDropdownData() async {
+  teacherList = await getTeacherIds();
+  roomList = await getAllRoomNames();
+  setState(() {});
+}
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final user = context.read<AuthProvider>().user;
       if (user != null) {
