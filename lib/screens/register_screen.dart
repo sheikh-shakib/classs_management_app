@@ -51,7 +51,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               _field("Password", password, obscure: true),
               const SizedBox(height: 12),
               DropdownButtonFormField<UserRole>(
-                value: role,
+                initialValue: role,
                 dropdownColor: const Color(0xFF1C1F2E),
                 decoration: _inputDecoration("Role"),
                 items: UserRole.values.map((r) {
@@ -69,8 +69,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               const SizedBox(height: 12),
 
               //group selection
-              if (role != UserRole.teacher)
-                _field("Group ID", group),
+              if (role != UserRole.teacher) _field("Group ID", group),
 
               const SizedBox(height: 20),
 
@@ -98,7 +97,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               } else {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(
-                                      content: Text("Registration failed")),
+                                    content: Text("Registration failed"),
+                                  ),
                                 );
                               }
                             },
@@ -116,8 +116,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
-  Widget _field(String hint, TextEditingController c,
-      {bool obscure = false}) {
+  Widget _field(String hint, TextEditingController c, {bool obscure = false}) {
     return TextField(
       controller: c,
       obscureText: obscure,
@@ -132,9 +131,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       hintStyle: const TextStyle(color: Colors.white38),
       filled: true,
       fillColor: const Color(0xFF1C1F2E),
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(10),
-      ),
+      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
     );
   }
 }

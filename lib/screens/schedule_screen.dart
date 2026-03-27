@@ -19,6 +19,8 @@ class ScheduleScreen extends StatefulWidget {
 class _ScheduleScreenState extends State<ScheduleScreen> {
   DateTime _selectedDate = DateTime.now();
   late DateTime _weekStart;
+  List<String> teacherList = [];
+  List<String> roomList = [];
 
   DateTime _getWeekStart(DateTime date) {
     return date.subtract(Duration(days: date.weekday - 1));
@@ -29,21 +31,27 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
     super.initState();
     _weekStart = _getWeekStart(_selectedDate);
 
-  
-  loadDropdownData();
-  }
-
-Future<void> loadDropdownData() async {
-  teacherList = await getTeacherIds();
-  roomList = await getAllRoomNames();
-  setState(() {});
-}
+    loadDropdownData();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final user = context.read<AuthProvider>().user;
       if (user != null) {
         context.read<ScheduleProvider>().loadSchedule(user);
       }
     });
+  }
+
+  Future<void> loadDropdownData() async {
+    final service = ScheduleService();
+
+    final t = await service.getTeacherIds();
+    final r = await service.getAllRoomNames();
+
+    if (mounted) {
+      setState(() {
+        teacherList = t;
+        roomList = r;
+      });
+    }
   }
 
   void _openAdd(UserModel user, {ScheduleEvent? event}) {
@@ -53,6 +61,8 @@ Future<void> loadDropdownData() async {
         user: user,
         existingEvent: event,
         allEvents: context.read<ScheduleProvider>().events,
+        teacherList: teacherList,
+        roomList: roomList,
         onSave: (e) async {
           final conflicts = await ScheduleService().checkConflicts(e);
 
@@ -88,7 +98,7 @@ Future<void> loadDropdownData() async {
     await ScheduleService().cancelEventOnce(e.id, _selectedDate);
 
     final user = context.read<AuthProvider>().user;
-    if (user != null) {
+    if (user != null && mounted) {
       context.read<ScheduleProvider>().loadSchedule(user);
     }
   }
@@ -100,44 +110,47 @@ Future<void> loadDropdownData() async {
 
     if (user == null) return const Scaffold();
 
-    final events = schedule.events
-        .where((e) => e.occursOn(_selectedDate))
-        .toList()
-      ..sort((a, b) {
-        final aMin = a.startTime.hour * 60 + a.startTime.minute;
-        final bMin = b.startTime.hour * 60 + b.startTime.minute;
-        return aMin.compareTo(bMin);
-      });
+    final events =
+        schedule.events.where((e) => e.occursOn(_selectedDate)).toList()
+          ..sort((a, b) {
+            final aMin = a.startTime.hour * 60 + a.startTime.minute;
+            final bMin = b.startTime.hour * 60 + b.startTime.minute;
+            return aMin.compareTo(bMin);
+          });
 
     return Scaffold(
       backgroundColor: const Color(0xFF0F1117),
       floatingActionButton:
           (user.role == UserRole.teacher || user.role == UserRole.cr)
-              ? FloatingActionButton(
-                  onPressed: () => _openAdd(user),
-                  child: const Icon(Icons.add),
-                )
-              : null,
+          ? FloatingActionButton(
+              onPressed: () => _openAdd(user),
+              child: const Icon(Icons.add),
+            )
+          : null,
       body: SafeArea(
         child: Column(
           children: [
             _header(user),
             _weekNav(),
             _daysRow(),
-
             Expanded(
               child: schedule.isLoading
                   ? const Center(child: CircularProgressIndicator())
                   : events.isEmpty
-                      ? const Center(child: Text("No classes"))
-                      : ListView.builder(
-                          itemCount: events.length,
-                          itemBuilder: (_, i) {
-                            final e = events[i];
-                            final conflict = _hasConflict(e, schedule.events);
-                            return _card(e, user, conflict);
-                          },
-                        ),
+                  ? const Center(
+                      child: Text(
+                        "No classes",
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    )
+                  : ListView.builder(
+                      itemCount: events.length,
+                      itemBuilder: (_, i) {
+                        final e = events[i];
+                        final conflict = _hasConflict(e, schedule.events);
+                        return _card(e, user, conflict);
+                      },
+                    ),
             ),
           ],
         ),
@@ -153,8 +166,12 @@ Future<void> loadDropdownData() async {
       if (e.dayOfWeek != other.dayOfWeek) continue;
 
       if (!service.isTimeOverlap(
-          e.startTime, e.endTime,
-          other.startTime, other.endTime)) continue;
+        e.startTime,
+        e.endTime,
+        other.startTime,
+        other.endTime,
+      ))
+        continue;
 
       if (e.room == other.room ||
           e.teacherId == other.teacherId ||
@@ -182,7 +199,7 @@ Future<void> loadDropdownData() async {
               );
             },
             icon: const Icon(Icons.logout, color: Colors.red),
-          )
+          ),
         ],
       ),
     );
@@ -201,8 +218,10 @@ Future<void> loadDropdownData() async {
           },
         ),
         const Spacer(),
-        Text("${_weekStart.day}/${_weekStart.month}",
-            style: const TextStyle(color: Colors.white)),
+        Text(
+          "${_weekStart.day}/${_weekStart.month}",
+          style: const TextStyle(color: Colors.white),
+        ),
         const Spacer(),
         IconButton(
           icon: const Icon(Icons.chevron_right, color: Colors.white),
@@ -218,7 +237,7 @@ Future<void> loadDropdownData() async {
   }
 
   Widget _daysRow() {
-    const labels = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+    const labels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
     return Row(
       children: List.generate(7, (i) {
@@ -240,11 +259,15 @@ Future<void> loadDropdownData() async {
               ),
               child: Column(
                 children: [
-                  Text(labels[i],
-                      style: const TextStyle(color: Colors.white, fontSize: 11),
-                      overflow: TextOverflow.ellipsis),
-                  Text("${day.day}",
-                      style: const TextStyle(color: Colors.white)),
+                  Text(
+                    labels[i],
+                    style: const TextStyle(color: Colors.white, fontSize: 11),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  Text(
+                    "${day.day}",
+                    style: const TextStyle(color: Colors.white),
+                  ),
                 ],
               ),
             ),
@@ -268,36 +291,33 @@ Future<void> loadDropdownData() async {
         subtitle: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-           Text(
-          "${e.startTime.format(context)} - ${e.endTime.format(context)}",
-          style: const TextStyle(color: Colors.white54),
+            Text(
+              "${e.startTime.format(context)} - ${e.endTime.format(context)}",
+              style: const TextStyle(color: Colors.white54),
+            ),
+            Text(e.room, style: const TextStyle(color: Colors.white54)),
+          ],
         ),
-         Text(
-          "${e.room}",
-          style: const TextStyle(color: Colors.white54),
-        ),
-        
-          ]
-        ),
-
-   trailing: (user.role == UserRole.teacher || user.role == UserRole.cr) 
-    ? PopupMenuButton<String>(
-        onSelected: (v) {
-          if (v == "edit") _openAdd(user, event: e);
-          if (v == "cancel_once") _cancelOnce(e);
-          if (v == "delete") {
-            // Added proper block for the delete logic
-            context.read<ScheduleProvider>().deleteEvent(e.id);
-          }
-        },
-        itemBuilder: (_) => const [
-          PopupMenuItem(value: "edit", child: Text("Edit")),
-          PopupMenuItem(value: "cancel_once", child: Text("Cancel Once")),
-          PopupMenuItem(value: "delete", child: Text("Delete")),
-        ],
-      )
-    : null, 
-        
+        trailing: (user.role == UserRole.teacher || user.role == UserRole.cr)
+            ? PopupMenuButton<String>(
+                iconColor: Colors.white,
+                onSelected: (v) {
+                  if (v == "edit") _openAdd(user, event: e);
+                  if (v == "cancel_once") _cancelOnce(e);
+                  if (v == "delete") {
+                    context.read<ScheduleProvider>().deleteEvent(e.id);
+                  }
+                },
+                itemBuilder: (_) => const [
+                  PopupMenuItem(value: "edit", child: Text("Edit")),
+                  PopupMenuItem(
+                    value: "cancel_once",
+                    child: Text("Cancel Once"),
+                  ),
+                  PopupMenuItem(value: "delete", child: Text("Delete")),
+                ],
+              )
+            : null,
       ),
     );
   }

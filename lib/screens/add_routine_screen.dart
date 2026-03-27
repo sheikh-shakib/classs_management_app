@@ -9,12 +9,16 @@ class AddRoutineScreen extends StatefulWidget {
   final ScheduleEvent? existingEvent;
   final List<ScheduleEvent> allEvents;
   final Future<void> Function(ScheduleEvent) onSave;
+  final List<String> teacherList;
+  final List<String> roomList;
 
   const AddRoutineScreen({
     super.key,
     required this.user,
     required this.onSave,
     required this.allEvents,
+    required this.teacherList,
+    required this.roomList,
     this.existingEvent,
   });
 
@@ -30,12 +34,14 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
 
   TimeOfDay start = TimeOfDay.now();
   TimeOfDay end = TimeOfDay(hour: TimeOfDay.now().hour + 1, minute: 0);
+  String? selectedTeacher;
+  String? selectedRoom;
 
   bool isRecurring = true;
   DateTime? selectedDate;
   int selectedDay = DateTime.now().weekday;
 
-  final dayNames = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  final dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
   Future<void> pickTime(bool isStart) async {
     final picked = await showTimePicker(
@@ -44,8 +50,10 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
     );
     if (picked != null) {
       setState(() {
-        if (isStart) start = picked;
-        else end = picked;
+        if (isStart)
+          start = picked;
+        else
+          end = picked;
       });
     }
   }
@@ -82,44 +90,52 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
           children: [
             const Text("Add Class", style: TextStyle(color: Colors.white)),
 
-            TextField(controller: subject,style: TextStyle(color: Colors.blue), decoration: const InputDecoration(labelText: "Subject",)),
+            TextField(
+              controller: subject,
+              style: TextStyle(color: Colors.blue),
+              decoration: const InputDecoration(labelText: "Subject"),
+            ),
 
             if (!isCR)
-              TextField(controller: group,style: TextStyle(color: Colors.blue), decoration: const InputDecoration(labelText: "Group")),
+              TextField(
+                controller: group,
+                style: TextStyle(color: Colors.blue),
+                decoration: const InputDecoration(labelText: "Group"),
+              ),
 
-                  DropdownButtonFormField<String>(
-        value: selectedTeacher,
-        decoration: const InputDecoration(labelText: "Teacher"),
-        items: teacherList.map((teacher) {
-          return DropdownMenuItem(
-            value: teacher,
-            child: Text(teacher, style: TextStyle(color: Colors.blue)),
-          );
-        }).toList(),
-        onChanged: (value) {
-          setState(() {
-            selectedTeacher = value!;
-          });
-        },
-      ),
+            DropdownButtonFormField<String>(
+              value: selectedTeacher,
+              decoration: const InputDecoration(labelText: "Teacher"),
+              items: widget.teacherList.map((teacher) {
+                return DropdownMenuItem(
+                  value: teacher,
+                  child: Text(teacher, style: TextStyle(color: Colors.blue)),
+                );
+              }).toList(),
+              onChanged: (value) {
+                setState(() {
+                  selectedTeacher = value!;
+                });
+              },
+            ),
 
-      SizedBox(height: 16),
+            SizedBox(height: 16),
 
-      DropdownButtonFormField<String>(
-        value: selectedRoom,
-        decoration: const InputDecoration(labelText: "Room"),
-        items: roomList.map((room) {
-          return DropdownMenuItem(
-            value: room,
-            child: Text(room, style: TextStyle(color: Colors.blue)),
-          );
-        }).toList(),
-        onChanged: (value) {
-          setState(() {
-            selectedRoom = value!;
-          });
-        },
-      ),
+            DropdownButtonFormField<String>(
+              value: selectedRoom,
+              decoration: const InputDecoration(labelText: "Room"),
+              items: widget.roomList.map((room) {
+                return DropdownMenuItem(
+                  value: room,
+                  child: Text(room, style: TextStyle(color: Colors.blue)),
+                );
+              }).toList(),
+              onChanged: (value) {
+                setState(() {
+                  selectedRoom = value!;
+                });
+              },
+            ),
 
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -136,42 +152,46 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
                   onSelected: (_) => setState(() => isRecurring = false),
                 ),
                 if (isRecurring)
-                DropdownButton<int>(
-                  focusColor: Colors.white,
-                  iconEnabledColor: Colors.grey,
-                  value: selectedDay,
-                  items: List.generate(7, (i) {
-                    return DropdownMenuItem(
-                      value: i + 1,
-                      child: Text(dayNames[i],style: const TextStyle(color: Color.fromARGB(255, 24, 113, 187)),),
-                    );
-                  }),
-                  onChanged: (v) => setState(() => selectedDay = v!),
-                ),
-                 if (!isRecurring)
-                    Expanded(
-                      child: TextButton(
-                        onPressed: () async {
-                          final picked = await showDatePicker(
-                            context: context,
-                            initialDate: DateTime.now(),
-                            firstDate: DateTime(2024),
-                            lastDate: DateTime(2030),
-                          );
-                          if (picked != null) {
-                            setState(() => selectedDate = picked);
-                          }
-                        },
+                  DropdownButton<int>(
+                    focusColor: Colors.white,
+                    iconEnabledColor: Colors.grey,
+                    value: selectedDay,
+                    items: List.generate(7, (i) {
+                      return DropdownMenuItem(
+                        value: i + 1,
                         child: Text(
-                          selectedDate == null
-                              ? "Pick date"
-                              : "${selectedDate!.day}/${selectedDate!.month}",
-                                      ),
-                                    ),
+                          dayNames[i],
+                          style: const TextStyle(
+                            color: Color.fromARGB(255, 24, 113, 187),
+                          ),
+                        ),
+                      );
+                    }),
+                    onChanged: (v) => setState(() => selectedDay = v!),
+                  ),
+                if (!isRecurring)
+                  Expanded(
+                    child: TextButton(
+                      onPressed: () async {
+                        final picked = await showDatePicker(
+                          context: context,
+                          initialDate: DateTime.now(),
+                          firstDate: DateTime(2024),
+                          lastDate: DateTime(2030),
+                        );
+                        if (picked != null) {
+                          setState(() => selectedDate = picked);
+                        }
+                      },
+                      child: Text(
+                        selectedDate == null
+                            ? "Pick date"
+                            : "${selectedDate!.day}/${selectedDate!.month}",
+                      ),
                     ),
+                  ),
               ],
             ),
-
 
             Row(
               children: [
@@ -192,7 +212,7 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
 
             const SizedBox(height: 10),
 
-            ElevatedButton(onPressed: save, child: const Text("Save"))
+            ElevatedButton(onPressed: save, child: const Text("Save")),
           ],
         ),
       ),
