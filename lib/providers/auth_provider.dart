@@ -36,6 +36,9 @@ class AuthProvider with ChangeNotifier {
     _isLoading = false;
     notifyListeners();
   }
+
+
+  //register
   Future<bool> register({
   required String name,
   required String id,

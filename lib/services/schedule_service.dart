@@ -6,7 +6,7 @@ import '../models/schedule_event.dart';
 class ScheduleService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
 
-  // Fetch events for students/CR based on groupId
+  //events for students/CR
   Future<List<ScheduleEvent>> getEvents(String groupId) async {
     final snapshot = await _db
         .collection('schedules')
@@ -15,7 +15,7 @@ class ScheduleService {
     return snapshot.docs.map((doc) => ScheduleEvent.fromMap(doc.data())).toList();
   }
 
-  // Fetch events for a specific teacher
+  //events for teacher
   Future<List<ScheduleEvent>> getEventsForTeacher(String teacherId) async {
     final snapshot = await _db
         .collection('schedules')
@@ -24,12 +24,12 @@ class ScheduleService {
     return snapshot.docs.map((doc) => ScheduleEvent.fromMap(doc.data())).toList();
   }
 
-  // Add a new routine
+  // add a new routine
   Future<void> addEvent(ScheduleEvent event) async {
     await _db.collection('schedules').doc(event.id).set(event.toMap());
   }
 
-  // Delete a routine using only eventId
+  // delete a routine
   Future<void> deleteEvent(String eventId) async {
     await _db.collection('schedules').doc(eventId).delete();
   }
@@ -44,7 +44,6 @@ class ScheduleService {
   return aStartMin < bEndMin && aEndMin > bStartMin;
 }
 //check for conflicts
-
 Future<List<String>> checkConflicts(ScheduleEvent newEvent) async {
   final snapshot = await _db.collection('schedules').get();
 
@@ -52,32 +51,22 @@ Future<List<String>> checkConflicts(ScheduleEvent newEvent) async {
 
   for (var doc in snapshot.docs) {
     final existing = ScheduleEvent.fromMap(doc.data());
-
-    // skip self (important for edit)
     if (existing.id == newEvent.id) continue;
-
-    // check if both occur on same date
     bool sameDay = false;
-
     if (!newEvent.isRecurring && !existing.isRecurring) {
       sameDay = newEvent.specificDate == existing.specificDate;
     } else {
-      // for recurring, compare weekday
       sameDay = newEvent.dayOfWeek == existing.dayOfWeek;
     }
-
     if (!sameDay) continue;
-
-    // check time overlap
     if (!isTimeOverlap(
         newEvent.startTime,
         newEvent.endTime,
         existing.startTime,
         existing.endTime)) continue;
-
-    // Conflict checks
     if (newEvent.room == existing.room) {
       conflicts.add('Room conflict with ${existing.subject}');
+
     }
 
     if (newEvent.teacherId == existing.teacherId) {
