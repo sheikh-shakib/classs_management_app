@@ -85,10 +85,10 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
             TextField(controller: subject,style: TextStyle(color: Colors.blue), decoration: const InputDecoration(labelText: "Subject",)),
 
             if (!isCR)
-              TextField(controller: group,style: TextStyle(color: Colors.white), decoration: const InputDecoration(labelText: "Group")),
+              TextField(controller: group,style: TextStyle(color: Colors.blue), decoration: const InputDecoration(labelText: "Group")),
 
-            TextField(controller: teacher,style: TextStyle(color: Colors.white), decoration: const InputDecoration(labelText: "Teacher")),
-            TextField(controller: room, style: TextStyle(color: Colors.white),decoration: const InputDecoration(labelText: "Room")),
+            TextField(controller: teacher,style: TextStyle(color: Colors.blue), decoration: const InputDecoration(labelText: "Teacher")),
+            TextField(controller: room, style: TextStyle(color: Colors.blue),decoration: const InputDecoration(labelText: "Room")),
 
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,

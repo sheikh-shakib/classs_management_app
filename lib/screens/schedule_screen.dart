@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../providers/auth_provider.dart';
-import '../providers/schedule_provider.dart';
+
 import '../models/schedule_event.dart';
 import '../models/user_model.dart';
+import '../providers/auth_provider.dart';
+import '../providers/schedule_provider.dart';
 import '../services/schedule_service.dart';
 import 'add_routine_screen.dart';
 import 'login_screen.dart';
@@ -249,15 +250,25 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
       color: const Color(0xFF1C1F2E),
       child: ListTile(
         title: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Expanded(child: Text(e.subject, style: const TextStyle(color: Colors.white))),
-            if (conflict)
-              const Icon(Icons.warning, color: Colors.yellow, size: 18),
+            Text(e.subject, style: const TextStyle(color: Colors.white)),
+            Text(e.teacherId, style: const TextStyle(color: Colors.white)),
           ],
         ),
-        subtitle: Text(
+        subtitle: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+           Text(
           "${e.startTime.format(context)} - ${e.endTime.format(context)}",
           style: const TextStyle(color: Colors.white54),
+        ),
+         Text(
+          "${e.room}",
+          style: const TextStyle(color: Colors.white54),
+        ),
+        
+          ]
         ),
         trailing: PopupMenuButton<String>(
           onSelected: (v) {
