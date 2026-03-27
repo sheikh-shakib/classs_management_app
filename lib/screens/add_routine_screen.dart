@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:uuid/uuid.dart';
+
 import '../models/schedule_event.dart';
 import '../models/user_model.dart';
-import 'package:uuid/uuid.dart';
 
 class AddRoutineScreen extends StatefulWidget {
   final UserModel user;
@@ -81,15 +82,16 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
           children: [
             const Text("Add Class", style: TextStyle(color: Colors.white)),
 
-            TextField(controller: subject, decoration: const InputDecoration(labelText: "Subject")),
+            TextField(controller: subject,style: TextStyle(color: Colors.blue), decoration: const InputDecoration(labelText: "Subject",)),
 
             if (!isCR)
-              TextField(controller: group, decoration: const InputDecoration(labelText: "Group")),
+              TextField(controller: group,style: TextStyle(color: Colors.white), decoration: const InputDecoration(labelText: "Group")),
 
-            TextField(controller: teacher, decoration: const InputDecoration(labelText: "Teacher")),
-            TextField(controller: room, decoration: const InputDecoration(labelText: "Room")),
+            TextField(controller: teacher,style: TextStyle(color: Colors.white), decoration: const InputDecoration(labelText: "Teacher")),
+            TextField(controller: room, style: TextStyle(color: Colors.white),decoration: const InputDecoration(labelText: "Room")),
 
             Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 ChoiceChip(
                   label: const Text("Recurring"),
@@ -102,40 +104,43 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
                   selected: !isRecurring,
                   onSelected: (_) => setState(() => isRecurring = false),
                 ),
+                if (isRecurring)
+                DropdownButton<int>(
+                  focusColor: Colors.white,
+                  iconEnabledColor: Colors.grey,
+                  value: selectedDay,
+                  items: List.generate(7, (i) {
+                    return DropdownMenuItem(
+                      value: i + 1,
+                      child: Text(dayNames[i],style: const TextStyle(color: Color.fromARGB(255, 24, 113, 187)),),
+                    );
+                  }),
+                  onChanged: (v) => setState(() => selectedDay = v!),
+                ),
+                 if (!isRecurring)
+                    Expanded(
+                      child: TextButton(
+                        onPressed: () async {
+                          final picked = await showDatePicker(
+                            context: context,
+                            initialDate: DateTime.now(),
+                            firstDate: DateTime(2024),
+                            lastDate: DateTime(2030),
+                          );
+                          if (picked != null) {
+                            setState(() => selectedDate = picked);
+                          }
+                        },
+                        child: Text(
+                          selectedDate == null
+                              ? "Pick date"
+                              : "${selectedDate!.day}/${selectedDate!.month}",
+                                      ),
+                                    ),
+                    ),
               ],
             ),
 
-            if (isRecurring)
-              DropdownButton<int>(
-                value: selectedDay,
-                items: List.generate(7, (i) {
-                  return DropdownMenuItem(
-                    value: i + 1,
-                    child: Text(dayNames[i]),
-                  );
-                }),
-                onChanged: (v) => setState(() => selectedDay = v!),
-              ),
-
-            if (!isRecurring)
-              TextButton(
-                onPressed: () async {
-                  final picked = await showDatePicker(
-                    context: context,
-                    initialDate: DateTime.now(),
-                    firstDate: DateTime(2024),
-                    lastDate: DateTime(2030),
-                  );
-                  if (picked != null) {
-                    setState(() => selectedDate = picked);
-                  }
-                },
-                child: Text(
-                  selectedDate == null
-                      ? "Pick date"
-                      : "${selectedDate!.day}/${selectedDate!.month}",
-                ),
-              ),
 
             Row(
               children: [
