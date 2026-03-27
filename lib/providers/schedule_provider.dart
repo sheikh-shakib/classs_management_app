@@ -8,7 +8,6 @@ class ScheduleProvider with ChangeNotifier {
   final ScheduleService _scheduleService = ScheduleService();
   List<ScheduleEvent> _events = [];
   bool _isLoading = false;
-
   List<ScheduleEvent> get events => _events;
   bool get isLoading => _isLoading;
 
@@ -16,7 +15,6 @@ class ScheduleProvider with ChangeNotifier {
   Future<void> loadSchedule(UserModel user) async {
     _isLoading = true;
     notifyListeners();
-
     try {
       if (user.role == UserRole.teacher) {
         _events = await _scheduleService.getEventsForTeacher(user.id);
@@ -33,6 +31,7 @@ class ScheduleProvider with ChangeNotifier {
     }
   }
 
+  //adding event
   Future<void> addEvent(ScheduleEvent event) async {
     await _scheduleService.addEvent(event);
     _events.add(event);
@@ -44,15 +43,5 @@ class ScheduleProvider with ChangeNotifier {
     await _scheduleService.deleteEvent(eventId);
     _events.removeWhere((e) => e.id == eventId);
     notifyListeners();
-  }
-
-  // get and sort classes by time for today
-  List<ScheduleEvent> getEventsForDay(DateTime date) {
-    return _events.where((event) => event.occursOn(date)).toList()
-      ..sort((a, b) {
-        final aMinutes = a.startTime.hour * 60 + a.startTime.minute;
-        final bMinutes = b.startTime.hour * 60 + b.startTime.minute;
-        return aMinutes.compareTo(bMinutes);
-      });
   }
 }

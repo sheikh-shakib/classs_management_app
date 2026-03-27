@@ -4,10 +4,8 @@ import '../services/auth_services.dart';
 
 class AuthProvider with ChangeNotifier {
   final AuthServices _authServices = AuthServices();
-
   UserModel? _user;
   bool _isLoading = false;
-
   UserModel? get user => _user;
   bool get isLoading => _isLoading;
 
@@ -16,7 +14,6 @@ class AuthProvider with ChangeNotifier {
   async {
     _isLoading = true;
     notifyListeners();
-
     final user = await _authServices.login(email: email, password: password);
     if (user != null) {
       _user = user;
@@ -49,7 +46,6 @@ class AuthProvider with ChangeNotifier {
 }) async {
   _isLoading = true;
   notifyListeners();
-
   final result = await _authServices.register(
     name: name,
     id: id,
@@ -58,15 +54,12 @@ class AuthProvider with ChangeNotifier {
     role: role,
     groupId: groupId,
   );
-
   _isLoading = false;
-
   if (result != null) {
     _user = result;
     notifyListeners();
     return true;
   }
-
   notifyListeners();
   return false;
 }

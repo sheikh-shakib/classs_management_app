@@ -1,13 +1,13 @@
-//user models defines here using oop classses concept
+// enum for roles of users
 enum UserRole { student, cr, teacher }
+//usermodel class
  class UserModel {
   final String id;
   final String name;
   final String email;
   final UserRole role;
   final String? groupId;
-  
-
+  //constructor
   UserModel({
     required this.id,
     required this.name,
@@ -15,7 +15,8 @@ enum UserRole { student, cr, teacher }
     required this.role,
     this.groupId,
   });
-//factory constructor to create UserModel from map from database
+
+  //factory constructor to load data from firebase map
   factory UserModel.fromMap(Map<String, dynamic> map) {
     return UserModel(
       id: map['id'] ?? '',
@@ -25,10 +26,10 @@ enum UserRole { student, cr, teacher }
         (e) => e.toString() == 'UserRole.${map['role']}',
         orElse: () => UserRole.student,
       ),
-      groupId: map['groupId'] ,
+      groupId: map['groupId'],
     );
   }
-//method to convert UserModel to map for database storage
+  //convert usermodel to map for firebase store
   Map<String, dynamic> toMap() {
     return {
       'id': id,
@@ -38,5 +39,4 @@ enum UserRole { student, cr, teacher }
       'groupId': groupId,
     };
   }
-
- } 
+} 
