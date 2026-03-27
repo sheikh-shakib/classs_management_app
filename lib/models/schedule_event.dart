@@ -14,9 +14,7 @@ class ScheduleEvent {
   final DateTime? specificDate; // used for one time classes
   final DateTime recurrenceStartDate;
   final DateTime? recurrenceEndDate;
-  final List<DateTime> exceptions; // dates when the event does not occur
-  final String?
-  parentRecurringEventId; // for exceptions, reference to the original recurring event
+  final List<DateTime> exceptions; // cancelled classes
   ScheduleEvent({
     required this.id,
     required this.groupId,
@@ -30,8 +28,7 @@ class ScheduleEvent {
     this.specificDate,
     required this.recurrenceStartDate,
     this.recurrenceEndDate,
-    this.exceptions = const [],
-    this.parentRecurringEventId,
+    this.exceptions = const []
   });
 
   Map<String, dynamic> toMap() {
@@ -51,7 +48,6 @@ class ScheduleEvent {
       'recurrenceStartDate': recurrenceStartDate,
       'recurrenceEndDate': recurrenceEndDate,
       'exceptions': exceptions.map((e) => Timestamp.fromDate(e)).toList(),
-      'parentRecurringEventId': parentRecurringEventId,
     };
   }
 
@@ -85,8 +81,7 @@ class ScheduleEvent {
           (map['exceptions'] as List<dynamic>?)
               ?.map((e) => (e as Timestamp).toDate())
               .toList() ?? [],
-      parentRecurringEventId: map['parentRecurringEventId'],
-    );
+    );    
   }
   bool occursOn(DateTime date) {
     final checkDate = DateTime(date.year, date.month, date.day);

@@ -38,6 +38,7 @@ class AuthProvider with ChangeNotifier {
   }
   Future<bool> register({
   required String name,
+  required String id,
   required String email,
   required String password,
   required UserRole role,
@@ -48,6 +49,7 @@ class AuthProvider with ChangeNotifier {
 
   final result = await _authServices.register(
     name: name,
+    id: id,
     email: email,
     password: password,
     role: role,

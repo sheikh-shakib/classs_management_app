@@ -6,21 +6,18 @@ class AuthServices {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  //LOGIN USING EMAIL AND PASSWORD
-  //returns UserModel if successful, null otherwise
+  //login user with email and password
+  //returns UserModel if successful
   Future<UserModel?> login({
     required String email,
     required String password,
   }) async {
     try {
-      //CHECK with firebase auth
       UserCredential userCredential = await _auth.signInWithEmailAndPassword(
         email: email,
         password: password,
       );
-      //GET FIREBASE USER ID
       String uid = userCredential.user!.uid;
-      //FETCH USER DATA FROM FIRESTORE
       final userDoc = await _firestore.collection('users').doc(uid).get();
 
       if (!userDoc.exists) {
@@ -28,7 +25,6 @@ class AuthServices {
       }
       return UserModel.fromMap(userDoc.data() as Map<String, dynamic>);
     } catch (e) {
-      print('Login error: $e');
       return null;
     }
   }
@@ -37,7 +33,7 @@ class AuthServices {
   Future<void> logout() async {
     await _auth.signOut();
   }
-  //get curret user details 
+  //get current user
   Future<UserModel?> getCurrentUser() async {
     User? firebaseUser = _auth.currentUser;
     if (firebaseUser == null) {
@@ -50,37 +46,32 @@ class AuthServices {
     }
     return UserModel.fromMap(userDoc.data() as Map<String, dynamic>);
   }
+  //register new user with email and password
   Future<UserModel?> register({
   required String name,
+  required String id,
   required String email,
   required String password,
   required UserRole role,
   String? groupId,
 }) async {
   try {
-    // create user in Firebase Auth
     UserCredential cred = await _auth.createUserWithEmailAndPassword(
       email: email,
       password: password,
     );
 
     String uid = cred.user!.uid;
-
-    // create user model
     final user = UserModel(
-      id: uid,
+      id: id,
       name: name,
       email: email,
       role: role,
       groupId: groupId,
     );
-
-    // store in Firestore
     await _firestore.collection('users').doc(uid).set(user.toMap());
-
     return user;
   } catch (e) {
-    print("Register error: $e");
     return null;
   }
 }

@@ -15,6 +15,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final email = TextEditingController();
   final password = TextEditingController();
   final group = TextEditingController();
+  final id = TextEditingController();
 
   UserRole role = UserRole.student;
 
@@ -43,12 +44,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
               _field("Name", name),
               const SizedBox(height: 12),
+              _field("UniqueId", id),
+              const SizedBox(height: 12),
               _field("Email", email),
               const SizedBox(height: 12),
               _field("Password", password, obscure: true),
               const SizedBox(height: 12),
-
-              // ROLE DROPDOWN
               DropdownButtonFormField<UserRole>(
                 value: role,
                 dropdownColor: const Color(0xFF1C1F2E),
@@ -67,7 +68,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
               const SizedBox(height: 12),
 
-              // GROUP (only for student/CR)
+              //group selection
               if (role != UserRole.teacher)
                 _field("Group ID", group),
 
@@ -83,6 +84,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           : () async {
                               final success = await auth.register(
                                 name: name.text.trim(),
+                                id: id.text.trim(),
                                 email: email.text.trim(),
                                 password: password.text.trim(),
                                 role: role,
