@@ -270,19 +270,25 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
         
           ]
         ),
-        trailing: PopupMenuButton<String>(
-          onSelected: (v) {
-            if (v == "edit") _openAdd(user, event: e);
-            if (v == "cancel_once") _cancelOnce(e);
-            if (v == "delete")
-              context.read<ScheduleProvider>().deleteEvent(e.id);
-          },
-          itemBuilder: (_) => const [
-            PopupMenuItem(value: "edit", child: Text("Edit")),
-            PopupMenuItem(value: "cancel_once", child: Text("Cancel Once")),
-            PopupMenuItem(value: "delete", child: Text("Delete")),
-          ],
-        ),
+
+   trailing: (user.role == UserRole.teacher || user.role == UserRole.cr) 
+    ? PopupMenuButton<String>(
+        onSelected: (v) {
+          if (v == "edit") _openAdd(user, event: e);
+          if (v == "cancel_once") _cancelOnce(e);
+          if (v == "delete") {
+            // Added proper block for the delete logic
+            context.read<ScheduleProvider>().deleteEvent(e.id);
+          }
+        },
+        itemBuilder: (_) => const [
+          PopupMenuItem(value: "edit", child: Text("Edit")),
+          PopupMenuItem(value: "cancel_once", child: Text("Cancel Once")),
+          PopupMenuItem(value: "delete", child: Text("Delete")),
+        ],
+      )
+    : null, 
+        
       ),
     );
   }
