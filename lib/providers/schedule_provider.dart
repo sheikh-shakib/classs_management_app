@@ -12,7 +12,7 @@ class ScheduleProvider with ChangeNotifier {
   List<ScheduleEvent> get events => _events;
   bool get isLoading => _isLoading;
 
-  // Load schedule based on user role
+  // load schedule
   Future<void> loadSchedule(UserModel user) async {
     _isLoading = true;
     notifyListeners();
@@ -39,14 +39,14 @@ class ScheduleProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  // Corrected to 1 argument
+  // corrected to 1 argument
   Future<void> deleteEvent(String eventId) async {
     await _scheduleService.deleteEvent(eventId);
     _events.removeWhere((e) => e.id == eventId);
     notifyListeners();
   }
 
-  // Get and sort classes by time for today
+  // get and sort classes by time for today
   List<ScheduleEvent> getEventsForDay(DateTime date) {
     return _events.where((event) => event.occursOn(date)).toList()
       ..sort((a, b) {
