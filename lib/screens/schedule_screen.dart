@@ -99,7 +99,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
   }
 
   void _cancelOnce(ScheduleEvent e) async {
-    await ScheduleService().cancelEventOnce(e.id, _selectedDate);
+    await context.read<ScheduleProvider>().cancelOnce(e.id, _selectedDate);
 
     final user = context.read<AuthProvider>().user;
     if (user != null && mounted) {

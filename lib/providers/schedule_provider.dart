@@ -37,7 +37,7 @@ class ScheduleProvider with ChangeNotifier {
     } catch (e) {
       //the error debug was used incase the loading doesn't work vvimpo
       debugPrint('Error loading schedule: $e');
-    } 
+    }
     //regardless of success or failure, loading is set to false and UI is notified to rebuild accordingly
     finally {
       _isLoading = false;
@@ -48,6 +48,7 @@ class ScheduleProvider with ChangeNotifier {
   //adding event by adding by calling the addEvent function in schedule service
   Future<void> addEvent(ScheduleEvent event) async {
     await _scheduleService.addEvent(event);
+    //updates local save
     _events.add(event);
     notifyListeners();
   }
@@ -55,7 +56,22 @@ class ScheduleProvider with ChangeNotifier {
   //deleting event by calling the deleteEvent function in schedule service
   Future<void> deleteEvent(String eventId) async {
     await _scheduleService.deleteEvent(eventId);
+    //updates local save
     _events.removeWhere((e) => e.id == eventId);
+    notifyListeners();
+  }
+
+  Future<void> cancelOnce(String eventId, DateTime date) async {
+    await _scheduleService.cancelEventOnce(eventId, date);
+    //updates local save
+    for (int i = 0; i < _events.length; i++) {
+    if (_events[i].id == eventId) {
+      _events[i].exceptions.add(
+        DateTime(date.year, date.month, date.day),
+      );
+      break;
+    }
+  }
     notifyListeners();
   }
 }
