@@ -118,7 +118,7 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
 
             DropdownButtonFormField<String>(
               value: selectedTeacher,
-              decoration: const InputDecoration(labelText: "Teacher"),
+              decoration: const InputDecoration(labelText: "Teacher",fillColor: Colors.amber),
               items: widget.teacherList.map((teacher) {
                 return DropdownMenuItem(
                   value: teacher,
@@ -166,7 +166,8 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
                 ),
                 if (isRecurring)
                   DropdownButton<int>(
-                    focusColor: Colors.white,
+                    dropdownColor: Colors.indigo,
+                    focusColor: Colors.grey,
                     iconEnabledColor: Colors.grey,
                     value: selectedDay,
                     items: List.generate(7, (i) {
