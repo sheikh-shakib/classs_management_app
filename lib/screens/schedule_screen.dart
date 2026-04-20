@@ -174,8 +174,9 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
         e.endTime,
         other.startTime,
         other.endTime,
-      ))
+      )) {
         continue;
+      }
 
       if (e.room == other.room ||
           e.teacherId == other.teacherId ||

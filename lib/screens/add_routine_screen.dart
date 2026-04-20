@@ -53,10 +53,11 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
     );
     if (picked != null) {
       setState(() {
-        if (isStart)
+        if (isStart) {
           start = picked;
-        else
+        } else {
           end = picked;
+        }
       });
     }
   }
@@ -101,7 +102,7 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
 
             if (!isCR)
               DropdownButtonFormField<String>(
-              value: selectedGroup,
+              initialValue: selectedGroup,
               decoration: const InputDecoration(labelText: "Group"),
               items: widget.groupList.map((group) {
                 return DropdownMenuItem(
@@ -117,7 +118,7 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
             ),
 
             DropdownButtonFormField<String>(
-              value: selectedTeacher,
+              initialValue: selectedTeacher,
               decoration: const InputDecoration(labelText: "Teacher",fillColor: Colors.amber),
               items: widget.teacherList.map((teacher) {
                 return DropdownMenuItem(
@@ -135,7 +136,7 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
             SizedBox(height: 16),
 
             DropdownButtonFormField<String>(
-              value: selectedRoom,
+              initialValue: selectedRoom,
               decoration: const InputDecoration(labelText: "Room"),
               items: widget.roomList.map((room) {
                 return DropdownMenuItem(
