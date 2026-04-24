@@ -225,7 +225,7 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
               ],
             ),
 
-            const SizedBox(height: 10),
+            const SizedBox(height: 5),
 
             ElevatedButton(onPressed: save, child: const Text("Save")),
           ],
