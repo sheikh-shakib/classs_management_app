@@ -143,7 +143,7 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
 
               if (!isCR)
                 DropdownButtonFormField<String>(
-                  value: selectedGroup, // Corrected from initialValue to value
+                  initialValue: selectedGroup, // Corrected from initialValue to value
                   dropdownColor: const Color(0xFF1C1F2E),
                   decoration: const InputDecoration(labelText: "Group", labelStyle: TextStyle(color: Colors.grey)),
                   items: widget.groupList.map((group) {
@@ -156,7 +156,7 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
                 ),
 
               DropdownButtonFormField<String>(
-                value: selectedTeacher,
+                initialValue: selectedTeacher,
                 dropdownColor: const Color(0xFF1C1F2E),
                 decoration: const InputDecoration(labelText: "Teacher", labelStyle: TextStyle(color: Colors.grey)),
                 items: widget.teacherList.map((teacher) {
@@ -171,7 +171,7 @@ class _AddRoutineScreenState extends State<AddRoutineScreen> {
               const SizedBox(height: 16),
 
               DropdownButtonFormField<String>(
-                value: selectedRoom,
+                initialValue: selectedRoom,
                 dropdownColor: const Color(0xFF1C1F2E),
                 decoration: const InputDecoration(labelText: "Room", labelStyle: TextStyle(color: Colors.grey)),
                 items: widget.roomList.map((room) {
