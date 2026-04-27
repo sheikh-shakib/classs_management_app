@@ -4,12 +4,12 @@ import 'package:provider/provider.dart';
 import '../models/schedule_event.dart';
 import '../models/user_model.dart';
 import '../providers/auth_provider.dart';
+import '../providers/notification_provider.dart';
 import '../providers/schedule_provider.dart';
 import '../services/schedule_service.dart';
 import 'add_routine_screen.dart';
 import 'login_screen.dart';
 import 'notification_screen.dart';
-import '../providers/notification_provider.dart';
 
 class ScheduleScreen extends StatefulWidget {
   const ScheduleScreen({super.key});

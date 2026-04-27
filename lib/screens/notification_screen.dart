@@ -1,9 +1,10 @@
 // lib/screens/notification_screen.dart
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import '../providers/notification_provider.dart';
-import '../providers/auth_provider.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
+
+import '../providers/auth_provider.dart';
+import '../providers/notification_provider.dart';
 
 class NotificationScreen extends StatelessWidget {
   const NotificationScreen({super.key});
@@ -12,49 +13,74 @@ class NotificationScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final notificationProvider = context.watch<NotificationProvider>();
     final authProvider = context.read<AuthProvider>();
-    final userId = authProvider.user!.id; // Get current logged in user ID
+
+    const backgroundColor = Color(0xFF0F1117);
+    const cardColor = Color(0xFF1C1F2E);
+
+    final userId = authProvider.user?.id ?? ''; 
 
     return Scaffold(
+      backgroundColor: backgroundColor, 
       appBar: AppBar(
-        title: const Text("Notifications"),
+        backgroundColor: backgroundColor,
+        elevation: 0,
+        title: const Text(
+          "Notifications",
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+        ),
+        iconTheme: const IconThemeData(color: Colors.white),
       ),
       body: notificationProvider.notifications.isEmpty
-          ? const Center(child: Text("No notifications yet"))
+          ? const Center(
+              child: Text(
+                "No notifications yet",
+                style: TextStyle(color: Colors.white38),
+              ),
+            )
           : ListView.builder(
+              padding: const EdgeInsets.symmetric(vertical: 8),
               itemCount: notificationProvider.notifications.length,
               itemBuilder: (context, index) {
                 final notification = notificationProvider.notifications[index];
                 
                 return Container(
-                  // Highlight unread notifications with a light blue color
-                  color: notification.isRead ? Colors.transparent : Colors.blue.shade50,
+                  margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: notification.isRead ? cardColor : cardColor.withOpacity(0.8),
+                    borderRadius: BorderRadius.circular(10),
+                    border: notification.isRead 
+                        ? null 
+                        : Border.all(color: Colors.blue.withOpacity(0.5), width: 1),
+                  ),
                   child: ListTile(
                     leading: Icon(
-                      Icons.circle,
-                      size: 12,
-                      // Show a blue dot for unread notifications
-                      color: notification.isRead ? Colors.transparent : Colors.blue,
+                      Icons.notifications_active,
+                      color: notification.isRead ? Colors.white38 : Colors.blue,
                     ),
                     title: Text(
                       notification.title,
                       style: TextStyle(
+                        color: Colors.white,
                         fontWeight: notification.isRead ? FontWeight.normal : FontWeight.bold,
                       ),
                     ),
                     subtitle: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(notification.message),
                         const SizedBox(height: 4),
                         Text(
+                          notification.message,
+                          style: const TextStyle(color: Colors.white70),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
                           DateFormat('MMM d, h:mm a').format(notification.timestamp),
-                          style: const TextStyle(fontSize: 12, color: Colors.grey),
+                          style: const TextStyle(fontSize: 11, color: Colors.white38),
                         ),
                       ],
                     ),
                     onTap: () {
-                      // Mark as read when the user taps on it
-                      if (!notification.isRead) {
+                      if (!notification.isRead && userId.isNotEmpty) {
                         notificationProvider.markAsRead(userId, notification.id);
                       }
                     },
