@@ -11,6 +11,20 @@ class AuthProvider with ChangeNotifier {
   UserModel? get user => _user;
   bool get isLoading => _isLoading;
 
+  // check login status
+  Future<void> checkLoginStatus() async {
+    _isLoading = true;
+    notifyListeners();
+    
+    final user = await _authServices.getCurrentUser();
+    if (user != null) {
+      _user = user;
+    }
+    
+    _isLoading = false;
+    notifyListeners();
+  }
+
   //login
   Future<bool> login({required String email, required String password}) async {
     //loading true to show a loading indicator in the UI while the login process is happening
