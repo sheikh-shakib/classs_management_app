@@ -6,7 +6,6 @@ class NotificationModel {
   final String message;
   final DateTime timestamp;
   final bool isRead;
-  final String type; // e.g. "class_update", "announcement", etc.
 
   NotificationModel({
     required this.id,
@@ -14,7 +13,6 @@ class NotificationModel {
     required this.message,
     required this.timestamp,
     this.isRead = false,
-    this.type = "class_update",
   });
   factory NotificationModel.fromMap(Map<String, dynamic> map) {
     return NotificationModel(
@@ -23,7 +21,6 @@ class NotificationModel {
       message: map['message'],
       timestamp: (map['timestamp'] as Timestamp).toDate(),
       isRead: map['isRead'] ?? false,
-      type: map['type'] ?? "class_update",
     );
   }
   Map<String, dynamic> toMap() {
@@ -33,7 +30,6 @@ class NotificationModel {
       'message': message,
       'timestamp': Timestamp.fromDate(timestamp),
       'isRead': isRead,
-      'type': type,
     };
   }
 }
