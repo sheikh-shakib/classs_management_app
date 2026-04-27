@@ -1,11 +1,11 @@
 import 'package:class_management_app/screens/login_screen.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
-
-import 'firebase_options.dart';
 import 'providers/auth_provider.dart';
+import 'firebase_options.dart';
 import 'providers/schedule_provider.dart';
+import 'providers/notification_provider.dart';
 
 
 void main() async {
@@ -29,6 +29,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider<ScheduleProvider>(
           create: (_) => ScheduleProvider(),
         ),
+        ChangeNotifierProvider(create: (_) => NotificationProvider()),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
@@ -37,4 +38,5 @@ class MyApp extends StatelessWidget {
     );
   }
 }
+
 

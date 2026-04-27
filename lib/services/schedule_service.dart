@@ -1,5 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import '../services/notification_services.dart';
+
 
 import '../models/schedule_event.dart';
 
@@ -27,20 +29,47 @@ class ScheduleService {
         .collection('schedules')
         .where('teacherId', isEqualTo: teacherId)
         .get();
+
     ///passes the snapshot docs to map function to convert to event class and then to list
     return snapshot.docs
         .map((doc) => ScheduleEvent.fromMap(doc.data()))
         .toList();
   }
+  String _formatTime(TimeOfDay time) {
+    final hour = time.hourOfPeriod == 0 ? 12 : time.hourOfPeriod;
+    final minute = time.minute.toString().padLeft(2, '0');
+    final period = time.period == DayPeriod.am ? "AM" : "PM";
+    return "$hour:$minute $period";
+  }
 
   // add a new routine by adding a new document to firestore with the event data , event id is auto generated
   Future<void> addEvent(ScheduleEvent event) async {
     await _db.collection('schedules').doc(event.id).set(event.toMap());
+
+    await NotificationService().notifyClassChange(
+      title: "Class Added/Updated",
+      message:
+          "${event.subject} scheduled for ${event.dayOfWeek} at ${_formatTime(event.startTime)}",
+      groupId: event.groupId,
+      teacherId: event.teacherId,
+    );
   }
 
   // delete a routine from firestore by its document id which is the event id
   Future<void> deleteEvent(String eventId) async {
+    final doc = await _db.collection('schedules').doc(eventId).get();
+    if (!doc.exists) return;
+    
+    final event = ScheduleEvent.fromMap({...doc.data()!, 'id': eventId});
+    
     await _db.collection('schedules').doc(eventId).delete();
+
+    await NotificationService().notifyClassChange(
+      title: "Class Cancelled",
+      message: "${event.subject} on ${event.dayOfWeek} has been removed.",
+      groupId: event.groupId,
+      teacherId: event.teacherId,
+    );
   }
 
   //check for time overlap
@@ -63,7 +92,7 @@ class ScheduleService {
   //check for conflicts , if the events time overlaps and they are on the same day, then it checks if they have the same room, teacher or group and adds the conflict message to the list of conflicts which is returned at the end
   Future<List<String>> checkConflicts(ScheduleEvent newEvent) async {
     final snapshot = await _db.collection('schedules').get();
-//list to store conflict messages
+    //list to store conflict messages
     List<String> conflicts = [];
     //for each existing event in the schedule, it checks if it is on the same day as the new event and if their time overlaps
     for (var doc in snapshot.docs) {
@@ -77,7 +106,7 @@ class ScheduleService {
         sameDay = newEvent.dayOfWeek == existing.dayOfWeek;
       }
       if (!sameDay) continue;
-      //calls time overlap fucntion 
+      //calls time overlap fucntion
       if (!isTimeOverlap(
         newEvent.startTime,
         newEvent.endTime,
@@ -104,27 +133,29 @@ class ScheduleService {
 
     return conflicts;
   }
- //one tiem cancel by adding an exception date and then updating the evetn doc
+
+  //one tiem cancel by adding an exception date and then updating the evetn doc
   Future<void> cancelEventOnce(String eventId, DateTime date) async {
     final doc = _db.collection('schedules').doc(eventId);
 
     final snapshot = await doc.get();
 
     if (!snapshot.exists) return;
-
-    final data = snapshot.data()!;
-    final event = ScheduleEvent.fromMap({...data, 'id': doc.id});
-
-    final newExceptions = [
-      ...event.exceptions,
-      DateTime(date.year, date.month, date.day),
-    ];
+    final event = ScheduleEvent.fromMap({...snapshot.data()!, 'id': eventId});
+    final newExceptions = [...event.exceptions, DateTime(date.year, date.month, date.day)];
 
     await doc.update({
       'exceptions': newExceptions.map((e) => Timestamp.fromDate(e)).toList(),
     });
+
+    await NotificationService().notifyClassChange(
+      title: "One-time Cancellation",
+      message: "${event.subject} cancelled for ${date.day}/${date.month}.",
+      groupId: event.groupId,
+      teacherId: event.teacherId,
+    );
   }
-  //gets list of all teacher 
+  //gets list of all teacher
 
   Future<List<String>> getTeacherIds() async {
     try {
@@ -142,7 +173,8 @@ class ScheduleService {
       return [];
     }
   }
-//gets list of all room names
+
+  //gets list of all room names
   Future<List<String>> getAllRoomNames() async {
     try {
       QuerySnapshot querySnapshot = await FirebaseFirestore.instance
