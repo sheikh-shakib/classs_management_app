@@ -3,10 +3,11 @@ import 'package:provider/provider.dart';
 
 import '../models/schedule_event.dart';
 import '../models/user_model.dart';
+import '../models/notification_model.dart';
 import '../providers/auth_provider.dart';
-import '../providers/notification_provider.dart';
 import '../providers/schedule_provider.dart';
 import '../services/schedule_service.dart';
+import '../services/notification_services.dart';
 import 'add_routine_screen.dart';
 import 'login_screen.dart';
 import 'notification_screen.dart';
@@ -39,7 +40,6 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
       final user = context.read<AuthProvider>().user;
       if (user != null) {
         context.read<ScheduleProvider>().loadSchedule(user);
-        context.read<NotificationProvider>().listenToNotifications(user.id);
       }
     });
   }
@@ -195,30 +195,32 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
       padding: const EdgeInsets.all(12),
       child: Row(
         children: [
-          // User Name
-          Text(user.name, style: const TextStyle(color: Colors.white)),
-
+          Text(
+            user.name,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
           const Spacer(),
-          Consumer<NotificationProvider>(
-            builder: (context, provider, _) {
+
+          StreamBuilder<List<NotificationModel>>(
+            stream: NotificationService().getNotifications(user.groupId!),
+            builder: (context, snapshot) {
+              int unreadCount =
+                  snapshot.data?.where((n) => !n.isRead).length ?? 0;
+
               return Stack(
                 children: [
                   IconButton(
-                    icon: const Icon(
-                      Icons.notifications,
-                      color: Colors.white,
-                      size: 28,
+                    icon: const Icon(Icons.notifications, color: Colors.white),
+                    onPressed: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => NotificationScreen()),
                     ),
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const NotificationScreen(),
-                        ),
-                      );
-                    },
                   ),
-                  if (provider.unreadCount > 0)
+                  if (unreadCount > 0)
                     Positioned(
                       right: 8,
                       top: 8,
@@ -233,7 +235,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                           minHeight: 16,
                         ),
                         child: Text(
-                          '${provider.unreadCount}',
+                          '$unreadCount',
                           style: const TextStyle(
                             color: Colors.white,
                             fontSize: 10,
@@ -246,8 +248,6 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
               );
             },
           ),
-
-          // Logout Button
           IconButton(
             onPressed: () async {
               await context.read<AuthProvider>().logout();
