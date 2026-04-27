@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import 'package:firebase_auth/firebase_auth.dart' hide AuthProvider;
 import '../models/notification_model.dart';
 import '../models/schedule_event.dart';
 import '../models/user_model.dart';
 import '../providers/auth_provider.dart';
+import '../providers/notification_provider.dart';
 import '../providers/schedule_provider.dart';
 import '../services/notification_services.dart';
 import '../services/schedule_service.dart';
@@ -205,58 +207,53 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
           ),
           const Spacer(),
 
-          // FIX: Check if groupId is null before passing it to the stream.
-          // This prevents the Null check operator (!) error.
-          if (user.groupId != null)
-            StreamBuilder<List<NotificationModel>>(
-              stream: NotificationService().getNotifications(user.groupId!),
-              builder: (context, snapshot) {
-                int unreadCount =
-                    snapshot.data?.where((n) => !n.isRead).length ?? 0;
+          StreamBuilder<List<NotificationModel>>(
+            stream: NotificationService().getNotifications(FirebaseAuth.instance.currentUser!.uid),
+            builder: (context, snapshot) {
+              int unreadCount =
+                  snapshot.data?.where((n) => !n.isRead).length ?? 0;
 
-                return Stack(
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.notifications, color: Colors.white),
-                      onPressed: () => Navigator.push(
+              return Stack(
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.notifications, color: Colors.white),
+                    onPressed: () {
+                      // Ensure NotificationProvider is listening before navigating
+                      context.read<NotificationProvider>().listenToNotifications(FirebaseAuth.instance.currentUser!.uid);
+                      Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (_) => NotificationScreen()),
-                      ),
-                    ),
-                    if (unreadCount > 0)
-                      Positioned(
-                        right: 8,
-                        top: 8,
-                        child: Container(
-                          padding: const EdgeInsets.all(2),
-                          decoration: BoxDecoration(
-                            color: Colors.red,
-                            borderRadius: BorderRadius.circular(10),
+                        MaterialPageRoute(builder: (_) => const NotificationScreen()),
+                      );
+                    },
+                  ),
+                  if (unreadCount > 0)
+                    Positioned(
+                      right: 8,
+                      top: 8,
+                      child: Container(
+                        padding: const EdgeInsets.all(2),
+                        decoration: BoxDecoration(
+                          color: Colors.red,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        constraints: const BoxConstraints(
+                          minWidth: 16,
+                          minHeight: 16,
+                        ),
+                        child: Text(
+                          '$unreadCount',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
                           ),
-                          constraints: const BoxConstraints(
-                            minWidth: 16,
-                            minHeight: 16,
-                          ),
-                          child: Text(
-                            '$unreadCount',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 10,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
+                          textAlign: TextAlign.center,
                         ),
                       ),
-                  ],
-                );
-              },
-            )
-          else
-            // Fallback icon if no group is assigned yet
-            const IconButton(
-              icon: Icon(Icons.notifications_none, color: Colors.white54),
-              onPressed: null,
-            ),
+                    ),
+                ],
+              );
+            },
+          ),
 
           IconButton(
             onPressed: () async {

@@ -13,10 +13,16 @@ class NotificationService {
   }) async {
     // get all users in the specific group
     final userSnap = await _db.collection('users').where('groupId', isEqualTo: groupId).get();
-    List<String> userIds = userSnap.docs.map((doc) => doc.id).toList();
-    if (!userIds.contains(teacherId)) userIds.add(teacherId);
+    List<String> uids = userSnap.docs.map((doc) => doc.id).toList();
+    
+    // get the teacher's actual uid from firestore using their custom teacherId
+    final teacherSnap = await _db.collection('users').where('id', isEqualTo: teacherId).get();
+    if (teacherSnap.docs.isNotEmpty) {
+      String teacherUid = teacherSnap.docs.first.id;
+      if (!uids.contains(teacherUid)) uids.add(teacherUid);
+    }
 
-    for (String uid in userIds) {
+    for (String uid in uids) {
       final notifRef = _db.collection('users').doc(uid).collection('notifications').doc();
       final notification = NotificationModel(
         id: notifRef.id,

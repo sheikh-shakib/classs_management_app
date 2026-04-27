@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
-import '../providers/auth_provider.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../providers/notification_provider.dart';
 
 class NotificationScreen extends StatelessWidget {
@@ -12,12 +12,11 @@ class NotificationScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final notificationProvider = context.watch<NotificationProvider>();
-    final authProvider = context.read<AuthProvider>();
 
     const backgroundColor = Color(0xFF0F1117);
     const cardColor = Color(0xFF1C1F2E);
 
-    final userId = authProvider.user?.id ?? ''; 
+    final userId = FirebaseAuth.instance.currentUser?.uid ?? ''; 
 
     return Scaffold(
       backgroundColor: backgroundColor, 
