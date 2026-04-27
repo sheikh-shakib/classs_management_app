@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../models/user_model.dart';
+import '../services/schedule_service.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -14,10 +15,27 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final name = TextEditingController();
   final email = TextEditingController();
   final password = TextEditingController();
-  final group = TextEditingController();
   final id = TextEditingController();
 
   UserRole role = UserRole.student;
+  List<String> groupList = [];
+  String? selectedGroup;
+
+  @override
+  void initState() {
+    super.initState();
+    loadGroups();
+  }
+
+  Future<void> loadGroups() async {
+    final service = ScheduleService();
+    final g = await service.getAllgroups();
+    if (mounted) {
+      setState(() {
+        groupList = g;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -69,7 +87,22 @@ class _RegisterScreenState extends State<RegisterScreen> {
               const SizedBox(height: 12),
 
               //group selection
-              if (role != UserRole.teacher) _field("Group ID", group),
+              if (role != UserRole.teacher)
+                DropdownButtonFormField<String>(
+                  value: selectedGroup,
+                  dropdownColor: const Color(0xFF1C1F2E),
+                  decoration: _inputDecoration("Group ID"),
+                  items: groupList.map((g) {
+                    return DropdownMenuItem(
+                      value: g,
+                      child: Text(
+                        g,
+                        style: const TextStyle(color: Colors.white),
+                      ),
+                    );
+                  }).toList(),
+                  onChanged: (v) => setState(() => selectedGroup = v),
+                ),
 
               const SizedBox(height: 20),
 
@@ -89,7 +122,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 role: role,
                                 groupId: role == UserRole.teacher
                                     ? null
-                                    : group.text.trim(),
+                                    : selectedGroup,
                               );
 
                               if (success) {
