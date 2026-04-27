@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../models/notification_model.dart';
 import '../models/schedule_event.dart';
 import '../models/user_model.dart';
-import '../models/notification_model.dart';
 import '../providers/auth_provider.dart';
 import '../providers/schedule_provider.dart';
-import '../services/schedule_service.dart';
 import '../services/notification_services.dart';
+import '../services/schedule_service.dart';
 import 'add_routine_screen.dart';
 import 'login_screen.dart';
 import 'notification_screen.dart';
@@ -129,11 +129,11 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
       backgroundColor: const Color(0xFF0F1117),
       floatingActionButton:
           (user.role == UserRole.teacher || user.role == UserRole.cr)
-          ? FloatingActionButton(
-              onPressed: () => _openAdd(user),
-              child: const Icon(Icons.add),
-            )
-          : null,
+              ? FloatingActionButton(
+                  onPressed: () => _openAdd(user),
+                  child: const Icon(Icons.add),
+                )
+              : null,
       body: SafeArea(
         child: Column(
           children: [
@@ -144,20 +144,20 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
               child: schedule.isLoading
                   ? const Center(child: CircularProgressIndicator())
                   : events.isEmpty
-                  ? const Center(
-                      child: Text(
-                        "No classes",
-                        style: TextStyle(color: Colors.white),
-                      ),
-                    )
-                  : ListView.builder(
-                      itemCount: events.length,
-                      itemBuilder: (_, i) {
-                        final e = events[i];
-                        final conflict = _hasConflict(e, schedule.events);
-                        return _card(e, user, conflict);
-                      },
-                    ),
+                      ? const Center(
+                          child: Text(
+                            "No classes",
+                            style: TextStyle(color: Colors.white),
+                          ),
+                        )
+                      : ListView.builder(
+                          itemCount: events.length,
+                          itemBuilder: (_, i) {
+                            final e = events[i];
+                            final conflict = _hasConflict(e, schedule.events);
+                            return _card(e, user, conflict);
+                          },
+                        ),
             ),
           ],
         ),
@@ -205,49 +205,59 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
           ),
           const Spacer(),
 
-          StreamBuilder<List<NotificationModel>>(
-            stream: NotificationService().getNotifications(user.groupId!),
-            builder: (context, snapshot) {
-              int unreadCount =
-                  snapshot.data?.where((n) => !n.isRead).length ?? 0;
+          // FIX: Check if groupId is null before passing it to the stream.
+          // This prevents the Null check operator (!) error.
+          if (user.groupId != null)
+            StreamBuilder<List<NotificationModel>>(
+              stream: NotificationService().getNotifications(user.groupId!),
+              builder: (context, snapshot) {
+                int unreadCount =
+                    snapshot.data?.where((n) => !n.isRead).length ?? 0;
 
-              return Stack(
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.notifications, color: Colors.white),
-                    onPressed: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => NotificationScreen()),
-                    ),
-                  ),
-                  if (unreadCount > 0)
-                    Positioned(
-                      right: 8,
-                      top: 8,
-                      child: Container(
-                        padding: const EdgeInsets.all(2),
-                        decoration: BoxDecoration(
-                          color: Colors.red,
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        constraints: const BoxConstraints(
-                          minWidth: 16,
-                          minHeight: 16,
-                        ),
-                        child: Text(
-                          '$unreadCount',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 10,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
+                return Stack(
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.notifications, color: Colors.white),
+                      onPressed: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => NotificationScreen()),
                       ),
                     ),
-                ],
-              );
-            },
-          ),
+                    if (unreadCount > 0)
+                      Positioned(
+                        right: 8,
+                        top: 8,
+                        child: Container(
+                          padding: const EdgeInsets.all(2),
+                          decoration: BoxDecoration(
+                            color: Colors.red,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          constraints: const BoxConstraints(
+                            minWidth: 16,
+                            minHeight: 16,
+                          ),
+                          child: Text(
+                            '$unreadCount',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 10,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      ),
+                  ],
+                );
+              },
+            )
+          else
+            // Fallback icon if no group is assigned yet
+            const IconButton(
+              icon: Icon(Icons.notifications_none, color: Colors.white54),
+              onPressed: null,
+            ),
+
           IconButton(
             onPressed: () async {
               await context.read<AuthProvider>().logout();
